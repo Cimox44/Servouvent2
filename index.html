@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Servo-U Vent ICU</title>
+<meta name="description" content="Calcolatore parametri di ventilazione meccanica Servo-U per Terapia Intensiva Cardiochirurgica: meccanica, ossigenazione, CO2, drive, weaning, transpolmonare, troubleshooting.">
+<meta name="theme-color" content="#0e1620">
+<link rel="manifest" href="svu-manifest.json">
+<link rel="icon" href="svu-icon-192.png">
+<link rel="apple-touch-icon" href="svu-icon-192.png">
+<style>
+:root{
+  --bg:#0e1620; --bg2:#121d29; --card:#162332; --card2:#1b2b3d; --line:#26384d;
+  --tx:#e7eef5; --mu:#8fa3b8; --ac:#2ec4b6; --ac2:#1a9e93;
+  --ok:#3fb950; --okbg:rgba(63,185,80,.13);
+  --wa:#e3a21a; --wabg:rgba(227,162,26,.14);
+  --da:#f8514c; --dabg:rgba(248,81,76,.14);
+  --in:#58a6ff; --inbg:rgba(88,166,255,.13);
+  --r:12px; --sh:0 2px 10px rgba(0,0,0,.25);
+}
+:root[data-theme="light"]{
+  --bg:#f3f6f9; --bg2:#e9eef3; --card:#ffffff; --card2:#f6f9fb; --line:#d6dee6;
+  --tx:#13202c; --mu:#5a6b7c; --ac:#0f8f84; --ac2:#0b7268;
+  --ok:#1a7f37; --okbg:rgba(26,127,55,.10);
+  --wa:#9a6700; --wabg:rgba(191,135,0,.13);
+  --da:#cf222e; --dabg:rgba(207,34,46,.10);
+  --in:#0969da; --inbg:rgba(9,105,218,.09);
+  --sh:0 1px 6px rgba(0,0,0,.08);
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#f3f6f9; --bg2:#e9eef3; --card:#ffffff; --card2:#f6f9fb; --line:#d6dee6;
+    --tx:#13202c; --mu:#5a6b7c; --ac:#0f8f84; --ac2:#0b7268;
+    --ok:#1a7f37; --okbg:rgba(26,127,55,.10);
+    --wa:#9a6700; --wabg:rgba(191,135,0,.13);
+    --da:#cf222e; --dabg:rgba(207,34,46,.10);
+    --in:#0969da; --inbg:rgba(9,105,218,.09);
+    --sh:0 1px 6px rgba(0,0,0,.08);
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-text-size-adjust:100%;padding-bottom:env(safe-area-inset-bottom)}
+header{position:sticky;top:0;z-index:20;background:var(--bg2);border-bottom:1px solid var(--line)}
+.hrow{display:flex;align-items:center;gap:10px;padding:10px 16px 6px;max-width:1100px;margin:0 auto}
+.logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--ac),#1b6fa8);display:grid;place-items:center;color:#fff;font-weight:800;font-size:13px;flex:none}
+.ttl{flex:1;min-width:0}
+.ttl b{display:block;font-size:15px;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ttl span{display:block;font-size:11.5px;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ib{background:var(--card);border:1px solid var(--line);color:var(--tx);border-radius:9px;height:34px;min-width:34px;padding:0 9px;font-size:13px;cursor:pointer}
+.ib:active{transform:scale(.97)}
+.pbar{display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding:0 16px 8px;max-width:1100px;margin:0 auto;font-size:12px}
+.pbar::-webkit-scrollbar{display:none}
+.chip{flex:none;white-space:nowrap;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px 9px;color:var(--mu)}
+.chip b{color:var(--tx);font-weight:650}
+nav{display:flex;gap:6px;overflow-x:auto;padding:0 12px 10px;max-width:1100px;margin:0 auto;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav button{flex:none;background:transparent;border:1px solid var(--line);color:var(--mu);border-radius:999px;padding:7px 13px;font-size:13.5px;font-weight:600;cursor:pointer;white-space:nowrap}
+nav button.on{background:var(--ac);border-color:var(--ac);color:#fff}
+nav button .cnt{display:inline-block;min-width:18px;padding:0 5px;margin-left:5px;border-radius:9px;background:var(--da);color:#fff;font-size:11px;line-height:18px;text-align:center}
+main{max-width:1100px;margin:0 auto;padding:14px 16px 40px}
+section.tab{display:none}
+section.tab.on{display:block}
+.grid{display:grid;gap:14px;grid-template-columns:1fr}
+@media(min-width:820px){.grid.two{grid-template-columns:1fr 1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;box-shadow:var(--sh)}
+.card h2{font-size:15.5px;margin:0 0 4px;display:flex;align-items:center;gap:8px}
+.card h3{font-size:14px;margin:14px 0 6px;color:var(--ac)}
+.card .sub{font-size:12.5px;color:var(--mu);margin:0 0 10px}
+.ins{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:9px}
+.f{display:flex;flex-direction:column;gap:3px}
+.f label{font-size:12px;color:var(--mu);font-weight:600}
+.f .w{display:flex;align-items:center;background:var(--card2);border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.f input,.f select{flex:1;min-width:0;background:transparent;border:0;color:var(--tx);font-size:16px;padding:9px 10px;outline:none;font-variant-numeric:tabular-nums}
+.f select{appearance:none;-webkit-appearance:none;cursor:pointer}
+.f select option{background:var(--card);color:var(--tx)}
+.f .u{font-size:11.5px;color:var(--mu);padding:0 9px;white-space:nowrap}
+.f .w:focus-within{border-color:var(--ac)}
+.f small{font-size:11px;color:var(--mu)}
+.rng{display:flex;align-items:center;gap:10px;margin-top:6px}
+.rng input{flex:1;accent-color:var(--ac)}
+.rng output{font-weight:700;min-width:84px;text-align:right}
+.outs{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px;margin-top:12px}
+.o{background:var(--card2);border:1px solid var(--line);border-left:4px solid var(--line);border-radius:10px;padding:9px 11px;cursor:pointer}
+.o.ok{border-left-color:var(--ok)}
+.o.wa{border-left-color:var(--wa);background:var(--wabg)}
+.o.da{border-left-color:var(--da);background:var(--dabg)}
+.o.in{border-left-color:var(--in)}
+.o .t{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.o .l{font-size:12.5px;color:var(--mu);font-weight:600}
+.o .v{font-size:19px;font-weight:750;font-variant-numeric:tabular-nums;white-space:nowrap}
+.o .v small{font-size:11.5px;font-weight:500;color:var(--mu);margin-left:3px}
+.o .m{font-size:12.3px;margin-top:3px}
+.o.ok .m{color:var(--ok)} .o.wa .m{color:var(--wa)} .o.da .m{color:var(--da)} .o.in .m{color:var(--in)}
+.o .x{display:none;font-size:12.3px;color:var(--mu);margin-top:6px;border-top:1px dashed var(--line);padding-top:6px}
+.o.open .x{display:block}
+.o .fx{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;color:var(--tx);opacity:.85}
+.scen{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 4px}
+.scen button{background:var(--card2);border:1px solid var(--line);color:var(--tx);border-radius:9px;padding:7px 10px;font-size:12.8px;cursor:pointer}
+.scen button.on{border-color:var(--ac);background:var(--inbg);color:var(--ac);font-weight:700}
+.tgt{margin-top:10px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:10px;margin:8px 0}
+th,td{padding:7px 9px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+th{background:var(--card2);font-size:12px;color:var(--mu);text-transform:uppercase;letter-spacing:.3px;position:sticky;top:0}
+tr:last-child td{border-bottom:0}
+td.k{font-weight:650;min-width:104px}
+.tw table{min-width:540px}
+.g{color:var(--ok);font-weight:600}.y{color:var(--wa);font-weight:600}.r{color:var(--da);font-weight:600}
+details{background:var(--card2);border:1px solid var(--line);border-radius:10px;margin:8px 0;overflow:hidden}
+summary{cursor:pointer;padding:11px 12px;font-weight:650;font-size:14px;list-style:none;display:flex;gap:8px;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"▸";color:var(--ac);transition:transform .15s}
+details[open] summary::before{transform:rotate(90deg)}
+details .dc{padding:0 12px 12px;font-size:13.4px}
+details .dc ol,details .dc ul{padding-left:20px;margin:6px 0}
+details .dc li{margin:3px 0}
+.pill{display:inline-block;font-size:11px;font-weight:700;border-radius:6px;padding:1px 6px;margin-right:4px}
+.p-ok{background:var(--okbg);color:var(--ok)}.p-wa{background:var(--wabg);color:var(--wa)}.p-da{background:var(--dabg);color:var(--da)}.p-in{background:var(--inbg);color:var(--in)}
+.note{font-size:12.3px;color:var(--mu);background:var(--card2);border:1px solid var(--line);border-radius:9px;padding:9px 11px;margin-top:10px}
+.warnbox{font-size:12.6px;background:var(--wabg);border:1px solid var(--wa);border-radius:9px;padding:9px 11px;margin-top:10px}
+.flag{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.flag:last-child{border-bottom:0}
+.flag .dot{width:10px;height:10px;border-radius:50%;margin-top:6px;flex:none}
+.flag .dot.da{background:var(--da)}.flag .dot.wa{background:var(--wa)}
+.flag b{font-size:13.6px}
+.flag .fm{font-size:12.8px;color:var(--mu)}
+.flag .fa{font-size:12.6px;margin-top:3px}
+.stat{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.stat div{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
+.stat b{display:block;font-size:22px}
+.stat span{font-size:11.5px;color:var(--mu)}
+.chk label{display:flex;gap:9px;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--line);font-size:13.4px;cursor:pointer}
+.chk input{width:18px;height:18px;accent-color:var(--ac);margin-top:1px;flex:none}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.btn{background:var(--ac);color:#fff;border:0;border-radius:9px;padding:9px 13px;font-size:13.5px;font-weight:650;cursor:pointer}
+.btn.sec{background:var(--card2);color:var(--tx);border:1px solid var(--line)}
+footer{max-width:1100px;margin:0 auto;padding:0 16px 30px;font-size:11.5px;color:var(--mu);text-align:center}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:9px 14px;border-radius:10px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50}
+.toast.on{opacity:.95}
+.ref li{margin:4px 0;font-size:12.6px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:13px}
+.kv div:nth-child(odd){color:var(--mu);font-weight:600}
+</style>
+</head>
+<body>
+<header>
+  <div class="hrow">
+    <div class="logo">SU</div>
+    <div class="ttl"><b>Servo-U Vent · ICU CCH</b><span>Ventilazione meccanica · v2.0</span></div>
+    <button class="ib" id="btnInst" title="Installa / diagnostica" style="display:none">⬇</button>
+    <button class="ib" id="btnTheme" title="Tema chiaro/scuro">☾</button>
+    <button class="ib" id="btnReset" title="Azzera i dati">↺</button>
+  </div>
+  <div class="pbar" id="pbar"></div>
+  <nav id="nav"></nav>
+</header>
+
+<main>
+<!-- ============ SINTESI ============ -->
+<section class="tab" id="t-sintesi">
+  <div class="card" id="instCard" style="margin-bottom:14px">
+    <h2>📲 Installazione app</h2>
+    <p class="sub">Verifica automatica dei requisiti PWA di Chrome. Se tutto è verde compare il pulsante “Installa app”.</p>
+    <div id="instDiag" style="font-size:13.4px"></div>
+    <div class="btns"><button class="btn" id="btnInstall" style="display:none">Installa app</button><button class="btn sec" id="btnDiag">Ripeti controllo</button></div>
+  </div>
+  <div class="card">
+    <h2>Sintesi clinica automatica</h2>
+    <p class="sub">Tutti i valori calcolati fuori range, ordinati per gravità, con interpretazione e azione suggerita. Si aggiorna in tempo reale dai dati inseriti nelle altre schede.</p>
+    <div class="stat"><div><b id="sOk" style="color:var(--ok)">0</b><span>nel range</span></div><div><b id="sWa" style="color:var(--wa)">0</b><span>attenzione</span></div><div><b id="sDa" style="color:var(--da)">0</b><span>critici</span></div></div>
+    <div id="flags"></div>
+    <div class="btns"><button class="btn" id="btnCopy">Copia report per consegna</button><button class="btn sec" id="btnDemo">Carica caso esempio</button></div>
+    <div class="warnbox"><b>Uso clinico.</b> Strumento di supporto decisionale per personale esperto. Non sostituisce valutazione al letto, protocolli aziendali, prescrizione medica né il manuale d'uso Getinge del Servo-U installato. Le soglie sono riferimenti di letteratura, da contestualizzare sul singolo paziente.</div>
+  </div>
+</section>
+
+<!-- ============ PAZIENTE ============ -->
+<section class="tab" id="t-paz">
+  <div class="grid two">
+    <div class="card">
+      <h2>Paziente e peso predetto</h2>
+      <p class="sub">PBW (ARDSNet/Devine): il Vt si calcola sempre sul peso predetto dall'altezza, mai sul peso reale.</p>
+      <div class="ins" id="in-paz"></div>
+      <div class="rng"><span style="font-size:12.5px;color:var(--mu);font-weight:600">Vt target</span><input type="range" id="vtKg" min="3" max="8" step="0.5" value="6"><output id="vtKgOut">6 mL/kg</output></div>
+      <div class="outs" id="out-paz"></div>
+    </div>
+    <div class="card">
+      <h2>Scenario clinico</h2>
+      <p class="sub">Seleziona il fenotipo: imposta il Vt target e mostra gli obiettivi ventilatori specifici.</p>
+      <div class="scen" id="scen"></div>
+      <div class="tgt" id="tgt"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MECCANICA ============ -->
+<section class="tab" id="t-mecc">
+  <div class="card">
+    <h2>Impostazioni e misure Servo-U</h2>
+    <p class="sub">Pplat: Insp. hold 0,5–2 s a paziente passivo. PEEP totale: Exp. hold 3–5 s. Flusso e Raw validi in VC con flusso costante.</p>
+    <div class="ins" id="in-mecc"></div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h2>Meccanica respiratoria e potenza meccanica</h2>
+    <p class="sub">Tocca un risultato per formula, significato e risoluzione.</p>
+    <div class="outs" id="out-mecc"></div>
+  </div>
+</section>
+
+<!-- ============ EGA / OSSIGENAZIONE ============ -->
+<section class="tab" id="t-oss">
+  <div class="card">
+    <h2>EGA, ossigenazione e trasporto O₂</h2>
+    <p class="sub">Patm Trieste ≈ 760 mmHg. SvO₂ e gittata cardiaca facoltativi (da Swan-Ganz/monitor) per DO₂, O₂ER e shunt.</p>
+    <div class="ins" id="in-oss"></div>
+    <div class="outs" id="out-oss"></div>
+  </div>
+</section>
+
+<!-- ============ CO2 ============ -->
+<section class="tab" id="t-co2">
+  <div class="card">
+    <h2>CO₂, spazio morto e correzione della ventilazione</h2>
+    <p class="sub">VCO₂ ed EtCO₂ dal modulo CO₂ (Capnostat 5) del Servo-U. Se disponibile, inserisci direttamente la PeCO₂ (capnografia volumetrica).</p>
+    <div class="ins" id="in-co2"></div>
+    <div class="outs" id="out-co2"></div>
+  </div>
+</section>
+
+<!-- ============ DRIVE / WEANING ============ -->
+<section class="tab" id="t-wean">
+  <div class="grid two">
+    <div class="card">
+      <h2>Drive, sforzo inspiratorio e weaning</h2>
+      <p class="sub">Misure in modalità assistita (PS/VS/NAVA). ΔPocc: Exp. hold con sforzo del paziente, inserire la deflessione massima da PEEP (valore assoluto).</p>
+      <div class="ins" id="in-wean"></div>
+      <div class="outs" id="out-wean"></div>
+    </div>
+    <div class="card">
+      <h2>Checklist fast-track (estubazione ≤ 6 h)</h2>
+      <p class="sub">Criteri operativi derivati da consensus ITACTAIC 2024 ed ERAS Cardiac; adattare al protocollo di reparto.</p>
+      <div class="chk" id="chk"></div>
+      <div class="o in" id="chkRes" style="margin-top:10px"><div class="t"><span class="l">Criteri soddisfatti</span><span class="v" id="chkN">0</span></div><div class="m" id="chkM">—</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TRANSPOLMONARE ============ -->
+<section class="tab" id="t-ptp">
+  <div class="card">
+    <h2>Pressione transpolmonare (Pes – opzione Servo-U)</h2>
+    <p class="sub">Richiede catetere esofageo validato (manovra automatica di posizionamento Servo-U). Usa Pplat, PEEP totale e Vt della scheda Meccanica.</p>
+    <div class="ins" id="in-ptp"></div>
+    <div class="outs" id="out-ptp"></div>
+    <div class="note">Utile in: obesità/addome teso, sternotomia con torace rigido, ARDS moderata-grave, discrepanza tra Pplat e clinica. PL,ee guida la PEEP (evitare collasso); PL,ei da elastanza e ΔPL limitano lo stress (EPVent-2, Beitler 2019; Baedorf Kassis 2016).</div>
+  </div>
+</section>
+
+<!-- ============ RANGE ============ -->
+<section class="tab" id="t-range">
+  <div class="card">
+    <h2>Tabelle sinottiche dei range</h2>
+    <p class="sub">Verde = obiettivo · giallo = attenzione · rosso = critico. Paziente adulto intubato.</p>
+
+    <h3>1 · Volumi, pressioni e meccanica</h3>
+    <div class="tw"><table>
+      <tr><th>Parametro</th><th>Target</th><th>Attenzione</th><th>Critico</th><th>Significato dell'alterazione</th></tr>
+      <tr><td class="k">Vt / PBW</td><td class="g">6 (4–8) mL/kg</td><td class="y">8–10</td><td class="r">&gt;10</td><td>Volutrauma. Post-cardiotomia standard 6–8; ARDS 4–8 (ATS); ECMO ≤4–6</td></tr>
+      <tr><td class="k">Pplat</td><td class="g">≤27 cmH₂O</td><td class="y">28–30</td><td class="r">&gt;30</td><td>Stress alveolare globale; soglia ATS &lt;30. In ECMO ≤20–25</td></tr>
+      <tr><td class="k">Driving pressure ΔP</td><td class="g">≤14</td><td class="y">15–19</td><td class="r">≥20</td><td>Rapporto Vt/baby lung; predittore indipendente di mortalità (Amato 2015)</td></tr>
+      <tr><td class="k">Ppeak</td><td class="g">&lt;35</td><td class="y">35–40</td><td class="r">&gt;40</td><td>Somma componente resistiva + elastica: leggere sempre con Pplat</td></tr>
+      <tr><td class="k">Ppeak – Pplat</td><td class="g">≤5</td><td class="y">5–10</td><td class="r">&gt;10</td><td>Resistenze: secrezioni, broncospasmo, tubo piegato/morso, HME saturo</td></tr>
+      <tr><td class="k">Cstat</td><td class="g">≥50 mL/cmH₂O</td><td class="y">30–50</td><td class="r">&lt;30</td><td>↓ = atelettasia, edema, versamento, PNX, rigidità parete/addome</td></tr>
+      <tr><td class="k">Raw (VC)</td><td class="g">≤10 cmH₂O/L/s</td><td class="y">10–15</td><td class="r">&gt;15</td><td>Il tubo 7,5–8 contribuisce ~5–8; valori alti = ostruzione</td></tr>
+      <tr><td class="k">Te / τ</td><td class="g">≥3</td><td class="y">2–3</td><td class="r">&lt;2</td><td>Svuotamento incompleto → air-trapping, PEEPi, instabilità emodinamica</td></tr>
+      <tr><td class="k">PEEP intrinseca</td><td class="g">≤1</td><td class="y">1–5</td><td class="r">&gt;5</td><td>↓ ritorno venoso, sforzi inefficaci, sovrastima di Pplat/ΔP</td></tr>
+      <tr><td class="k">Potenza meccanica</td><td class="g">&lt;12 J/min</td><td class="y">12–17</td><td class="r">&gt;17</td><td>Energia/min trasferita al sistema; &gt;17 associata a mortalità (Serpa Neto 2018)</td></tr>
+      <tr><td class="k">Stress Index (Servo-U)</td><td class="g">0,9–1,1</td><td class="y">&lt;0,9</td><td class="r">&gt;1,1</td><td>&lt;0,9 reclutamento tidalico (↑PEEP?); &gt;1,1 sovradistensione (↓Vt/PEEP)</td></tr>
+      <tr><td class="k">Perdita VTi→VTe</td><td class="g">&lt;10%</td><td class="y">10–20%</td><td class="r">&gt;20%</td><td>Cuffia, fistola bronco-pleurica, drenaggi in aspirazione, circuito</td></tr>
+    </table></div>
+
+    <h3>2 · Ossigenazione e trasporto O₂</h3>
+    <div class="tw"><table>
+      <tr><th>Parametro</th><th>Target</th><th>Attenzione</th><th>Critico</th><th>Significato</th></tr>
+      <tr><td class="k">PaO₂</td><td class="g">70–120 mmHg</td><td class="y">60–70 / &gt;120</td><td class="r">&lt;60</td><td>Ipossiemia vs iperossia (vasocostrizione coronarica/sistemica, ROS)</td></tr>
+      <tr><td class="k">SpO₂</td><td class="g">94–98%</td><td class="y">90–93%</td><td class="r">&lt;90%</td><td>In BPCO ipercapnico target 88–92%</td></tr>
+      <tr><td class="k">FiO₂</td><td class="g">≤0,5</td><td class="y">0,5–0,6</td><td class="r">&gt;0,6</td><td>Tossicità O₂, atelettasia da riassorbimento</td></tr>
+      <tr><td class="k">P/F</td><td class="g">&gt;300</td><td class="y">200–300 (lieve)</td><td class="r">100–200 mod · ≤100 grave</td><td>Global ARDS 2024 (intubato, PEEP ≥5)</td></tr>
+      <tr><td class="k">S/F (SpO₂ ≤97%)</td><td class="g">&gt;315</td><td class="y">235–315</td><td class="r">148–235 · ≤148</td><td>Alternativa validata a P/F (Global 2024)</td></tr>
+      <tr><td class="k">a/A</td><td class="g">≥0,75</td><td class="y">0,35–0,75</td><td class="r">&lt;0,35</td><td>Meno dipendente da FiO₂ del gradiente A-a</td></tr>
+      <tr><td class="k">OI</td><td class="g">&lt;5</td><td class="y">5–16</td><td class="r">≥16 (≥30–40 → ECMO?)</td><td>Integra la Pmean: pesa il "costo pressorio" dell'ossigenazione</td></tr>
+      <tr><td class="k">CaO₂</td><td class="g">17–20 mL/dL</td><td class="y">14–17</td><td class="r">&lt;14</td><td>Dipende soprattutto da Hb e SaO₂</td></tr>
+      <tr><td class="k">DO₂I</td><td class="g">≥500 mL/min/m²</td><td class="y">400–500</td><td class="r">&lt;400</td><td>Post-CEC: soglie &lt;280–300 intra-CEC associate ad AKI</td></tr>
+      <tr><td class="k">O₂ER</td><td class="g">20–30%</td><td class="y">30–40% · &lt;20%</td><td class="r">&gt;40%</td><td>&gt;40% = DO₂ insufficiente; &lt;20% = shunt/disossia tissutale</td></tr>
+      <tr><td class="k">Qs/Qt</td><td class="g">&lt;10%</td><td class="y">10–20%</td><td class="r">&gt;20%</td><td>Shunt: atelettasia, edema, polmonite; refrattario a FiO₂</td></tr>
+    </table></div>
+
+    <h3>3 · CO₂ e spazio morto</h3>
+    <div class="tw"><table>
+      <tr><th>Parametro</th><th>Target</th><th>Attenzione</th><th>Critico</th><th>Significato</th></tr>
+      <tr><td class="k">PaCO₂</td><td class="g">35–45 mmHg</td><td class="y">45–55 / 30–35</td><td class="r">&gt;55 / &lt;30</td><td>Disfunzione VD/IP: target 35–40, evitare acidosi (↑PVR)</td></tr>
+      <tr><td class="k">pH</td><td class="g">7,35–7,45</td><td class="y">7,25–7,35 / 7,45–7,55</td><td class="r">&lt;7,25 / &gt;7,55</td><td>Ipercapnia permissiva solo se VD tollera (no in IP)</td></tr>
+      <tr><td class="k">Pa–EtCO₂</td><td class="g">≤5 mmHg</td><td class="y">5–10</td><td class="r">&gt;10</td><td>Spazio morto alveolare: bassa portata, EP, iperinsufflazione</td></tr>
+      <tr><td class="k">VD/VT (Bohr-Enghoff)</td><td class="g">≤0,40</td><td class="y">0,40–0,60</td><td class="r">&gt;0,60</td><td>Ogni +0,05 ↑ rischio di morte nell'ARDS (Nuckton 2002)</td></tr>
+      <tr><td class="k">Ventilatory Ratio</td><td class="g">&lt;1,5</td><td class="y">1,5–2</td><td class="r">&gt;2</td><td>Inefficienza ventilatoria globale (Sinha 2019)</td></tr>
+    </table></div>
+
+    <h3>4 · Drive, sforzo e weaning</h3>
+    <div class="tw"><table>
+      <tr><th>Parametro</th><th>Target</th><th>Attenzione</th><th>Critico</th><th>Significato</th></tr>
+      <tr><td class="k">P0.1</td><td class="g">1–3,5 cmH₂O</td><td class="y">&lt;1</td><td class="r">&gt;3,5</td><td>&lt;1 sovra-assistenza/sedazione; &gt;3,5 drive elevato (Telias 2020)</td></tr>
+      <tr><td class="k">Pmus stimata</td><td class="g">5–10 cmH₂O</td><td class="y">&lt;5 / 10–15</td><td class="r">&gt;15</td><td>Pmus = 0,75×|ΔPocc| (Bertoni 2019); diaframma-protezione</td></tr>
+      <tr><td class="k">ΔPL,dyn stimata</td><td class="g">≤15</td><td class="y">15–20</td><td class="r">&gt;20</td><td>Stress polmonare dinamico in respiro assistito (P-SILI)</td></tr>
+      <tr><td class="k">RSBI (SBI Servo-U)</td><td class="g">&lt;80</td><td class="y">80–105</td><td class="r">&gt;105</td><td>Yang-Tobin; misurare a PS ≤5–8 / PEEP 5</td></tr>
+      <tr><td class="k">MIP / NIF</td><td class="g">≤ –30</td><td class="y">–20 / –30</td><td class="r">&gt; –20</td><td>Forza muscolare inspiratoria</td></tr>
+      <tr><td class="k">CROP</td><td class="g">≥13</td><td class="y">&lt;13</td><td class="r">—</td><td>Compliance, Rate, Oxygenation, Pressure</td></tr>
+      <tr><td class="k">DTF diaframma (eco)</td><td class="g">≥30%</td><td class="y">20–30%</td><td class="r">&lt;20%</td><td>Disfunzione/paralisi frenica (cold injury, prelievo AMI)</td></tr>
+      <tr><td class="k">Escursione diaframma</td><td class="g">≥10 mm</td><td class="y">—</td><td class="r">&lt;10 mm</td><td>Associata a fallimento del weaning (Kim 2011)</td></tr>
+      <tr><td class="k">ROX (HFNO post-estubazione)</td><td class="g">≥4,88</td><td class="y">3,85–4,88</td><td class="r">&lt;3,85</td><td>Rischio di reintubazione (Roca 2019) a 2-6-12 h</td></tr>
+    </table></div>
+
+    <h3>5 · Transpolmonare</h3>
+    <div class="tw"><table>
+      <tr><th>Parametro</th><th>Target</th><th>Attenzione</th><th>Critico</th><th>Significato</th></tr>
+      <tr><td class="k">PL,ee (fine esp.)</td><td class="g">0 – +6</td><td class="y">–2/0 · 6–10</td><td class="r">&lt;–2</td><td>Negativa = collasso tidalico → ↑PEEP</td></tr>
+      <tr><td class="k">PL,ei da elastanza</td><td class="g">&lt;20</td><td class="y">20–25</td><td class="r">&gt;25</td><td>Stress di fine inspirazione sul polmone</td></tr>
+      <tr><td class="k">ΔPL</td><td class="g">&lt;10</td><td class="y">10–12</td><td class="r">&gt;12</td><td>Driving pressure transpolmonare</td></tr>
+    </table></div>
+  </div>
+</section>
+
+<!-- ============ TROUBLESHOOTING ============ -->
+<section class="tab" id="t-ts">
+  <div class="card">
+    <h2>Troubleshooting ventilatorio</h2>
+    <p class="sub">Algoritmi operativi per i problemi più frequenti in ICU cardiochirurgica.</p>
+
+    <details open><summary>🚨 Deterioramento acuto: DOPES + cause cardiochirurgiche</summary><div class="dc">
+      <p><b>Primo gesto:</b> se instabile → disconnetti e ventila con pallone a FiO₂ 1,0 (con PEEP valve). Se migliora = problema del ventilatore/circuito; se no = paziente o tubo.</p>
+      <div class="tw"><table>
+        <tr><th>Causa</th><th>Segni</th><th>Azione</th></tr>
+        <tr><td class="k">D – Dislocazione</td><td>Perdita EtCO₂, VTe basso, fonazione, tubo alla commessura spostato</td><td>Controlla cm, EtCO₂, auscultazione; laringoscopia/re-IOT</td></tr>
+        <tr><td class="k">O – Ostruzione</td><td>Ppeak ↑ con Pplat invariata, sondino non passa</td><td>Aspirazione, controlla morso/piega, cambia HME, fibroscopia</td></tr>
+        <tr><td class="k">P – Pneumotorace</td><td>Ppeak e Pplat ↑, ipotensione, MV asimmetrico, enfisema</td><td>Eco (lung sliding/point), drenaggio; ago se tensivo</td></tr>
+        <tr><td class="k">E – Equipaggiamento</td><td>Allarmi tecnici, perdite, gas supply</td><td>Ventilazione manuale, check circuito/cassetta espiratoria/O₂</td></tr>
+        <tr><td class="k">S – Stacking (PEEPi)</td><td>Flusso esp. non a zero, ipotensione progressiva</td><td>Disconnetti 20–30 s, ↓RR/Vt, ↑flusso insp.</td></tr>
+        <tr><td class="k">Tamponamento</td><td>Ipotensione, ↑PVC, ↓drenaggi improvvisi, ↓EtCO₂</td><td>Eco urgente, chirurgo, riapertura</td></tr>
+        <tr><td class="k">Emotorace / sanguinamento</td><td>Drenaggi &gt;200 mL/h, ↓Hb, Cstat ↓</td><td>Eco/RX, coagulazione, revisione chirurgica</td></tr>
+      </table></div>
+    </div></details>
+
+    <details><summary>⬆️ Ppeak alta – algoritmo Ppeak vs Pplat</summary><div class="dc">
+      <ol>
+        <li>Esegui <b>Insp. hold</b> e confronta Ppeak e Pplat.</li>
+        <li><b>Ppeak ↑, Pplat normale (gradiente &gt;10)</b> → problema <b>resistivo</b>: secrezioni, broncospasmo (β2 nebulizzati via Aerogen), tubo piegato/morso (bite block), HME saturo, tubo piccolo, condensa.</li>
+        <li><b>Ppeak ↑ e Pplat ↑</b> → problema di <b>compliance</b>: atelettasia (LLL sinistro tipico post-CEC), edema polmonare, versamento, PNX, intubazione selettiva, addome teso, torace chiuso rigido/tamponamento, PEEPi.</li>
+        <li>Asincronia/tosse/"fighting" → valuta dolore, sedazione, modalità.</li>
+        <li>In <b>PC/PRVC</b> la pressione è limitata: il segnale è il <b>calo del VTe</b>, non l'aumento della Ppeak.</li>
+      </ol>
+    </div></details>
+
+    <details><summary>🫁 Ipossiemia (SpO₂ &lt;92% / PaO₂ &lt;60)</summary><div class="dc">
+      <ol>
+        <li>Escludi DOPES, verifica curva SpO₂ e perfusione periferica (vasocostrizione, ipotermia).</li>
+        <li>FiO₂ ↑ temporaneamente (O₂ breath Servo-U per pre-ossigenazione).</li>
+        <li>Causa: <b>atelettasia</b> (ventilazione post-CEC, ipoventilazione) · <b>edema</b> cardiogeno (↑PCWP, disfunzione VS) · <b>versamento/emotorace</b> · <b>shunt intracardiaco</b> (PFO con ↑pressioni dx) · <b>polmonite</b> · <b>TRALI/TACO</b> dopo trasfusioni · <b>EP</b>.</li>
+        <li>Eco polmonare (B-lines, consolidamenti, versamento) + eco cardiaco + RX.</li>
+        <li>PEEP: titolazione con Cstat/ΔP/Stress Index o Open Lung Tool. Evita PEEP elevate se disfunzione VD.</li>
+        <li>Diuretico se sovraccarico; drenaggio se versamento significativo.</li>
+        <li>ARDS moderato-grave: Vt 4–8 mL/kg, Pplat &lt;30, PEEP più alta senza manovre di reclutamento prolungate (ATS 2024), prono &gt;12 h se P/F &lt;150, curaro precoce nella forma grave, ECMO VV in casi selezionati.</li>
+        <li><b>VA-ECMO</b>: controlla EGA da <b>radiale destra</b> → ipossiemia differenziale (Harlequin) se polmone nativo non ossigena e cuore eietta.</li>
+      </ol>
+    </div></details>
+
+    <details><summary>🌫️ Ipercapnia / acidosi respiratoria</summary><div class="dc">
+      <ol>
+        <li>Calcola VA e VD/VT (scheda CO₂). Gradiente Pa–EtCO₂ &gt;10 → spazio morto alveolare (bassa portata cardiaca, EP, iperinsufflazione).</li>
+        <li>Riduci lo <b>spazio morto strumentale</b>: HME → umidificazione attiva, elimina prolunghe/catheter mount superflui.</li>
+        <li>↑ RR (verifica Te ≥3τ e PEEPi) o ↑ Vt entro 8 mL/kg PBW e Pplat/ΔP accettabili.</li>
+        <li>Escludi: perdita (VTi≫VTe), febbre/brivido/↑VCO₂ (riscaldamento post-ipotermia, nutrizione), PEEPi, sedazione insufficiente.</li>
+        <li><b>Disfunzione VD / ipertensione polmonare</b>: l'ipercapnia permissiva è <u>controindicata</u> (↑PVR) → priorità a normocapnia.</li>
+      </ol>
+    </div></details>
+
+    <details><summary>🔁 PEEP intrinseca / air-trapping</summary><div class="dc">
+      <ul>
+        <li><b>Riconoscimento:</b> flusso espiratorio che non torna a zero, Exp. hold con PEEPtot &gt; PEEP set, ipotensione con ↑RR.</li>
+        <li><b>Controllata:</b> ↓RR, ↓Vt, ↓Ti (↑flusso in VC; in PC ↓Ti), broncodilatatori, aspirazione.</li>
+        <li><b>Assistita:</b> PEEP esterna ≈ 70–80% della PEEPi per ridurre gli sforzi inefficaci; Insp. Cycle Off alto (40–60%) per allungare Te.</li>
+        <li>Emergenza (ipotensione/PEA): disconnessione 20–30 s.</li>
+      </ul>
+    </div></details>
+
+    <details><summary>⚡ Asincronie paziente-ventilatore</summary><div class="dc">
+      <div class="tw"><table>
+        <tr><th>Tipo</th><th>Curve</th><th>Correzione Servo-U</th></tr>
+        <tr><td class="k">Sforzi inefficaci</td><td>Deflessione di flusso/pressione senza atto erogato</td><td>↓PS (sovra-assistenza), ↓PEEPi, ↑Cycle Off, ↑sensibilità trigger; NAVA</td></tr>
+        <tr><td class="k">Auto-trigger</td><td>Atti senza sforzo, RR sincrona con FC</td><td>↓sensibilità trigger flusso; cerca <b>perdite</b> (cuffia, drenaggi), condensa, <b>oscillazioni cardiogene</b> (tipico post-CCH, iperdinamia)</td></tr>
+        <tr><td class="k">Doppio trigger</td><td>Due atti ravvicinati senza espirazione</td><td>↑Ti/Vt (se drive alto e Vt sicuro), passa a PC/PS; ↑ sedo-analgesia</td></tr>
+        <tr><td class="k">Reverse triggering</td><td>Sforzo innescato dall'atto macchina (entrainment)</td><td>Modifica RR/Ti, valuta sedazione profonda; Edi lo evidenzia</td></tr>
+        <tr><td class="k">Fame di flusso</td><td>Curva di pressione concava in VC</td><td>↑flusso o passa a PRVC/PC; ↓Rise time</td></tr>
+        <tr><td class="k">Ciclaggio prematuro</td><td>Sforzo che prosegue dopo la fine dell'atto</td><td>↓Insp. Cycle Off (10–25%) – fenotipo restrittivo</td></tr>
+        <tr><td class="k">Ciclaggio ritardato</td><td>Picco di pressione a fine inspirazione, espirazione attiva</td><td>↑Insp. Cycle Off (40–60%) – fenotipo ostruttivo</td></tr>
+      </table></div>
+    </div></details>
+
+    <details><summary>💧 VTe basso / perdite</summary><div class="dc">
+      <ul>
+        <li>Confronta VTi e VTe (perdita % in Meccanica).</li>
+        <li>Pressione cuffia 25–30 cmH₂O (manometro), riposiziona tubo.</li>
+        <li><b>Drenaggi pleurici in aspirazione</b> con fistola/lesione aerea → perdita trans-pleurica.</li>
+        <li>Circuito, raccordi, porta aspirazione chiusa, nebulizzatore, sensore CO₂.</li>
+        <li>Fistola bronco-pleurica: ↓Pmean e PEEP al minimo efficace, Vt bassi, RR basse.</li>
+      </ul>
+    </div></details>
+
+    <details><summary>🫀 Interazioni cuore–polmone in cardiochirurgia</summary><div class="dc">
+      <div class="tw"><table>
+        <tr><th>Situazione</th><th>Effetto della ventilazione</th><th>Strategia</th></tr>
+        <tr><td class="k">Disfunzione VD / IP</td><td>↑PVR con iperinsufflazione e con atelettasia (PVR minima a FRC), ipossia, ipercapnia, acidosi</td><td>Vt 6 mL/kg, PEEP moderata (5–8), Pplat &lt;27, PaCO₂ 35–40, pH ≥7,35, SpO₂ ≥94%, FiO₂ adeguata; NO inalatorio se indicato</td></tr>
+        <tr><td class="k">Disfunzione VS / edema</td><td>La pressione positiva ↓ postcarico VS e precarico</td><td>PEEP utile (8–10); attenzione al weaning: WIPO (edema da svezzamento)</td></tr>
+        <tr><td class="k">Ipovolemia</td><td>PEEP e Pmean ↓ ritorno venoso → ipotensione</td><td>Ottimizza volemia prima di ↑PEEP; PPV/SVV valide solo se passivo, Vt ≥8, RR/FC &gt;3,6, torace chiuso</td></tr>
+        <tr><td class="k">Tamponamento / torace aperto</td><td>Pressione intratoracica peggiora il riempimento</td><td>Pressioni minime, chirurgo</td></tr>
+        <tr><td class="k">Fontan / circolazione passiva</td><td>Il flusso polmonare dipende dalla pressione negativa</td><td>Pmean minima, Ti breve, estubazione precoce</td></tr>
+      </table></div>
+    </div></details>
+
+    <details><summary>🧯 Fallimento del weaning in cardiochirurgia</summary><div class="dc">
+      <ul>
+        <li><b>Cardiaco (WIPO):</b> ↑pressioni di riempimento durante SBT; eco E/e' ↑, ↑BNP, emoconcentrazione (↑Hb/protidi) → diuretico, vasodilatatore, PEEP.</li>
+        <li><b>Paresi/paralisi frenica</b> (cold injury, prelievo AMI): emidiaframma sollevato, DTF &lt;20%, escursione &lt;10 mm, movimento paradosso allo sniff test eco.</li>
+        <li><b>Sovraccarico idrico</b>, versamenti, atelettasia basale sinistra.</li>
+        <li><b>Delirium</b>, sedazione residua, curaro residuo (TOF ≥0,9), dolore sternale.</li>
+        <li><b>Debolezza</b> (ICU-AW), malnutrizione, elettroliti (K, Mg, P).</li>
+        <li><b>Metabolico:</b> alcalosi metabolica (ipoventilazione di compenso), ↑VCO₂.</li>
+        <li>Dopo estubazione ad alto rischio: <b>HFNO o NIV profilattica</b>, monitor ROX.</li>
+      </ul>
+    </div></details>
+
+    <details><summary>🌀 Ventilazione in ECMO / IABP / Impella</summary><div class="dc">
+      <ul>
+        <li><b>Lung rest</b> (ELSO; CESAR/EOLIA): Pplat ≤20–25, ΔP ≤10–14, PEEP ≥10, RR 4–10 (fino a 20), FiO₂ 0,3–0,5, Vt spesso ≤4 mL/kg.</li>
+        <li><b>VA-ECMO</b>: EGA/SpO₂ da radiale dx; distensione VS → edema polmonare (venting); evitare atelettasia completa (rischio Harlequin quando il cuore recupera).</li>
+        <li>Lo <b>sweep</b> regola la CO₂; la FiO₂ dell'ossigenatore l'ossigenazione: non usare il ventilatore per correggere gli scambi se l'ECMO è adeguata.</li>
+        <li>Curva EtCO₂ bassa con cuore fermo: atteso (flusso polmonare minimo); ↑EtCO₂ = ripresa della gittata nativa.</li>
+        <li><b>IABP/Impella</b>: nessuna impostazione specifica; attenzione a supino stretto, decubito e atelettasie posteriori.</li>
+      </ul>
+    </div></details>
+
+    <details><summary>🔔 Allarmi Servo-U – cause e azioni</summary><div class="dc">
+      <div class="tw"><table>
+        <tr><th>Allarme</th><th>Cause frequenti</th><th>Azione</th></tr>
+        <tr><td class="k">Pressione vie aeree alta</td><td>Tosse, secrezioni, morso, broncospasmo, PNX, asincronia</td><td>Algoritmo Ppeak/Pplat; il ventilatore interrompe l'inspirazione al limite</td></tr>
+        <tr><td class="k">Volume minuto esp. basso</td><td>Perdita, disconnessione, ↓drive in PS, apnea</td><td>Controlla circuito/cuffia, VTe, livello PS, sedazione</td></tr>
+        <tr><td class="k">Volume minuto esp. alto</td><td>Dolore, ansia, acidosi metabolica, auto-trigger</td><td>Cerca la causa del drive; regola trigger</td></tr>
+        <tr><td class="k">Apnea</td><td>Sedazione, oppioidi, PS eccessiva, ipocapnia</td><td>Backup ventilation attiva; ↓PS, ↓sedazione</td></tr>
+        <tr><td class="k">Frequenza alta</td><td>Distress, auto-trigger, doppio trigger</td><td>RSBI, P0.1, Edi; valuta asincronie</td></tr>
+        <tr><td class="k">EtCO₂ alta/bassa</td><td>Ipoventilazione / ↓gittata, EP, dislocazione</td><td>EGA, emodinamica, posizione tubo</td></tr>
+        <tr><td class="k">Perdita eccessiva</td><td>Cuffia, drenaggi, fistola, NIV maschera</td><td>Vedi sezione VTe basso</td></tr>
+        <tr><td class="k">PEEP alta/bassa</td><td>PEEPi, ostruzione esp., perdita</td><td>Exp. hold, check cassetta espiratoria</td></tr>
+        <tr><td class="k">Gas supply / O₂</td><td>Pressione di rete, sensore O₂</td><td>Bombola/riserva, calibrazione cella O₂</td></tr>
+      </table></div>
+      <p style="font-size:12px;color:var(--mu)">Diciture indicative: la nomenclatura esatta dipende dalla versione software installata (verificare il manuale d'uso).</p>
+    </div></details>
+  </div>
+</section>
+
+<!-- ============ SERVO-U ============ -->
+<section class="tab" id="t-servo">
+  <div class="card">
+    <h2>Servo-U: modalità e impostazioni</h2>
+    <p class="sub">Riferimento operativo per l'uso in cardiochirurgia.</p>
+    <div class="tw"><table>
+      <tr><th>Modalità</th><th>Funzionamento</th><th>Uso in ICU CCH</th></tr>
+      <tr><td class="k">PRVC</td><td>Volume target con pressione regolata atto per atto (flusso decelerato)</td><td>Default post-operatorio: Vt garantito con pressione minima</td></tr>
+      <tr><td class="k">VC</td><td>Volume con flusso costante</td><td>Misure di meccanica (Raw, Stress Index), paziente passivo</td></tr>
+      <tr><td class="k">PC</td><td>Pressione sopra PEEP e Ti impostati, Vt variabile</td><td>Perdite, fistole, limitazione delle pressioni</td></tr>
+      <tr><td class="k">SIMV (VC/PRVC/PC) + PS</td><td>Atti obbligatori + spontanei supportati</td><td>Transizione; poco vantaggio rispetto a PS/Automode</td></tr>
+      <tr><td class="k">VS (Volume Support)</td><td>PS a volume target</td><td>Svezzamento con Vt garantito</td></tr>
+      <tr><td class="k">PS/CPAP</td><td>Supporto di pressione triggerato e ciclato a flusso</td><td>SBT e weaning fast-track</td></tr>
+      <tr><td class="k">Automode</td><td>Passaggio automatico controllata↔assistita (PRVC↔VS, PC↔PS, VC↔VS)</td><td>Risveglio post-op: segue il ritorno del drive senza intervento</td></tr>
+      <tr><td class="k">Bi-Vent / APRV</td><td>Due livelli di pressione con respiro spontaneo libero</td><td>Casi selezionati di ipossiemia; attenzione al VD</td></tr>
+      <tr><td class="k">NAVA / NIV NAVA</td><td>Assistenza proporzionale al segnale Edi (sondino dedicato)</td><td>Asincronie, weaning difficile, monitoraggio del diaframma</td></tr>
+      <tr><td class="k">NPS / NIV NPS</td><td>PS triggerata e ciclata dal segnale Edi</td><td>Alternativa a NAVA con supporto fisso</td></tr>
+      <tr><td class="k">High Flow</td><td>Ossigenoterapia ad alto flusso dal ventilatore</td><td>Post-estubazione (monitor ROX)</td></tr>
+    </table></div>
+
+    <h3>Impostazioni chiave</h3>
+    <div class="tw"><table>
+      <tr><th>Parametro</th><th>Range tipico CCH</th><th>Note</th></tr>
+      <tr><td class="k">Vt</td><td>6–8 mL/kg PBW</td><td>Calcolato su PBW (scheda Paziente)</td></tr>
+      <tr><td class="k">PEEP</td><td>5–8 cmH₂O (fino a 10–12 se indicato)</td><td>Più alta in obesità/ARDS; cauta in disfunzione VD</td></tr>
+      <tr><td class="k">FR</td><td>12–18 atti/min</td><td>Per normocapnia; verificare Te ≥3τ</td></tr>
+      <tr><td class="k">Ti / I:E</td><td>0,8–1,0 s · 1:2</td><td>I:E 1:3–1:4 se ostruttivo</td></tr>
+      <tr><td class="k">Insp. rise time</td><td>0,10–0,20 s (o 5–10%)</td><td>↓ se fame di flusso; ↑ se picco iniziale/fastidio</td></tr>
+      <tr><td class="k">Insp. Cycle Off</td><td>Restrittivo 10–25% · normale 25–40% · ostruttivo 40–60%</td><td>Percentuale del flusso di picco che termina l'inspirazione in PS/VS</td></tr>
+      <tr><td class="k">Trigger flusso</td><td>Il più sensibile senza auto-trigger</td><td>Barra trigger: verde = flusso, rosso = rischio auto-trigger</td></tr>
+      <tr><td class="k">PS (svezzamento)</td><td>5–10 cmH₂O sopra PEEP</td><td>SBT a PS 5–8 / PEEP 5 per 30 min</td></tr>
+      <tr><td class="k">Backup (apnea)</td><td>Tempo apnea 15–30 s</td><td>Fondamentale in PS/NAVA nel risveglio</td></tr>
+      <tr><td class="k">NAVA level</td><td>0,5–3 cmH₂O/µV (inizio)</td><td>Titolare con Edi e Vt; stima in scheda Weaning</td></tr>
+      <tr><td class="k">Edi trigger</td><td>0,5 µV (default)</td><td>Soglia di variazione Edi che avvia l'atto</td></tr>
+    </table></div>
+
+    <h3>Strumenti di monitoraggio integrati</h3>
+    <div class="tw"><table>
+      <tr><th>Strumento</th><th>A cosa serve</th></tr>
+      <tr><td class="k">Servo Compass</td><td>Visualizza Pplat/ΔP e Vt/PBW rispetto ai target impostati, con Cdyn e Stress Index</td></tr>
+      <tr><td class="k">Stress Index</td><td>Forma della curva di pressione in VC a flusso costante: &lt;0,9 reclutamento tidalico, &gt;1,1 sovradistensione</td></tr>
+      <tr><td class="k">Open Lung Tool</td><td>Trend atto per atto di meccanica e scambi (Cdyn, VTCO₂) per titolare PEEP e ΔP</td></tr>
+      <tr><td class="k">Auto SRM</td><td>Manovra stepwise automatica + titolazione decrementale della PEEP su Cdyn ottimale (le linee guida 2023–24 sconsigliano reclutamenti prolungati di routine)</td></tr>
+      <tr><td class="k">Pressione transpolmonare</td><td>Pes/PL con manovra automatica di validazione del palloncino (modulo Y sensor)</td></tr>
+      <tr><td class="k">Edi</td><td>Attività elettrica del diaframma: drive, sovra/sotto-assistenza, asincronie</td></tr>
+      <tr><td class="k">Modulo CO₂</td><td>EtCO₂, VCO₂, VTCO₂ (Capnostat 5)</td></tr>
+      <tr><td class="k">Hold insp./esp.</td><td>Pplat, Cstat, PEEPtot, PEEPi, ΔPocc</td></tr>
+      <tr><td class="k">Aerogen / Heliox</td><td>Nebulizzazione a membrana in circuito chiuso; eliox per ostruzione grave</td></tr>
+    </table></div>
+    <div class="note">Le funzioni disponibili dipendono dalle opzioni software acquistate. Range e default possono variare con la versione installata: verificare sempre sul ventilatore in uso.</div>
+  </div>
+</section>
+
+<!-- ============ FONTI ============ -->
+<section class="tab" id="t-fonti">
+  <div class="card">
+    <h2>Formule e bibliografia</h2>
+    <h3>Formule principali</h3>
+    <div class="tw"><table>
+      <tr><th>Parametro</th><th>Formula</th></tr>
+      <tr><td class="k">PBW</td><td>M: 50 + 0,91×(H–152,4) · F: 45,5 + 0,91×(H–152,4)</td></tr>
+      <tr><td class="k">ΔP · Cstat · Cdyn</td><td>Pplat–PEEPtot · Vt/(Pplat–PEEPtot) · Vt/(Ppeak–PEEP)</td></tr>
+      <tr><td class="k">Raw · τ</td><td>(Ppeak–Pplat)/Flusso[L/s] · Raw×Cstat[L/cmH₂O]</td></tr>
+      <tr><td class="k">MP volumetrica</td><td>0,098×RR×Vt[L]×(Ppeak – ½ΔP) (Gattinoni/Giosa)</td></tr>
+      <tr><td class="k">MP pressometrica</td><td>0,098×RR×Vt[L]×(ΔPinsp + PEEP) (Becher 2019)</td></tr>
+      <tr><td class="k">PAO₂</td><td>FiO₂×(Patm–47) – PaCO₂/RQ</td></tr>
+      <tr><td class="k">OI · OSI</td><td>Pmean×FiO₂×100/PaO₂ · Pmean×FiO₂×100/SpO₂</td></tr>
+      <tr><td class="k">CaO₂ · DO₂</td><td>1,34×Hb×SaO₂ + 0,003×PaO₂ · CaO₂×GC×10</td></tr>
+      <tr><td class="k">Qs/Qt</td><td>(CcO₂–CaO₂)/(CcO₂–CvO₂)</td></tr>
+      <tr><td class="k">VD/VT</td><td>(PaCO₂–PeCO₂)/PaCO₂; PeCO₂ = VCO₂/VE×(Patm–47)</td></tr>
+      <tr><td class="k">Ventilatory ratio</td><td>(VE[mL/min]×PaCO₂)/(PBW×100×37,5)</td></tr>
+      <tr><td class="k">Pmus · ΔPL,dyn</td><td>0,75×|ΔPocc| · (Ppeak–PEEP) + 0,66×|ΔPocc|</td></tr>
+      <tr><td class="k">RSBI · CROP · ROX</td><td>RR/Vt[L] · Cdyn×|MIP|×(PaO₂/PAO₂)/RR · (SpO₂/FiO₂)/RR</td></tr>
+      <tr><td class="k">PL,ei elastanza</td><td>Pplat×(EL/Ers); EL = Ers–Ecw; Ecw = ΔPes/Vt</td></tr>
+    </table></div>
+    <h3>Bibliografia essenziale</h3>
+    <ol class="ref">
+      <li>Matthay MA et al. A New Global Definition of ARDS. Am J Respir Crit Care Med 2024;209:37-47.</li>
+      <li>Grasselli G et al. ESICM guidelines on ARDS: definition, phenotyping and respiratory support strategies. Intensive Care Med 2023;49:727-759.</li>
+      <li>Qadir N et al. An Update on Management of Adult Patients with ARDS: ATS Clinical Practice Guideline. Am J Respir Crit Care Med 2024;209:24-36.</li>
+      <li>ARDS Network. Lower tidal volumes in ALI/ARDS. N Engl J Med 2000;342:1301-8.</li>
+      <li>Amato MBP et al. Driving pressure and survival in ARDS. N Engl J Med 2015;372:747-55.</li>
+      <li>Gattinoni L et al. Ventilator-related causes of lung injury: the mechanical power. Intensive Care Med 2016;42:1567-75.</li>
+      <li>Giosa L et al. Mechanical power at a glance: a simple surrogate for volume-controlled ventilation. Intensive Care Med Exp 2019;7:61.</li>
+      <li>Becher T et al. Calculation of mechanical power for pressure-controlled ventilation. Intensive Care Med 2019;45:1321-3.</li>
+      <li>Serpa Neto A et al. Mechanical power of ventilation is associated with mortality. Intensive Care Med 2018;44:1914-22.</li>
+      <li>Costa ELV et al. Ventilatory variables and mechanical power in ARDS (4ΔP + RR). Am J Respir Crit Care Med 2021;204:303-11.</li>
+      <li>Grasso S et al. Stress index to set PEEP in ARDS. Am J Respir Crit Care Med 2007;176:761-7.</li>
+      <li>Nuckton TJ et al. Pulmonary dead-space fraction and mortality in ARDS. N Engl J Med 2002;346:1281-6.</li>
+      <li>Sinha P et al. Physiologic analysis and clinical performance of the ventilatory ratio in ARDS. Am J Respir Crit Care Med 2019;199:333-41.</li>
+      <li>Bertoni M et al. A novel non-invasive method to detect excessively high respiratory effort and dynamic transpulmonary driving pressure (ΔPocc). Crit Care 2019;23:346.</li>
+      <li>Telias I et al. Airway occlusion pressure as an estimate of respiratory drive and inspiratory effort. Am J Respir Crit Care Med 2020;201:1086-98.</li>
+      <li>Goligher EC et al. Lung- and diaphragm-protective ventilation. Am J Respir Crit Care Med 2020;202:950-61.</li>
+      <li>Beitler JR et al. PEEP titration guided by esophageal pressure vs empirical high PEEP–FiO₂ (EPVent-2). JAMA 2019;321:846-57.</li>
+      <li>Baedorf Kassis E et al. Mortality and pulmonary mechanics in relation to respiratory system and transpulmonary driving pressures in ARDS. Intensive Care Med 2016;42:1206-13.</li>
+      <li>Yang KL, Tobin MJ. A prospective study of indexes predicting weaning outcome. N Engl J Med 1991;324:1445-50.</li>
+      <li>Roca O et al. An index combining respiratory rate and oxygenation (ROX) to predict HFNC outcome. Am J Respir Crit Care Med 2019;199:1368-76.</li>
+      <li>Kim WY et al. Diaphragm dysfunction assessed by ultrasonography: influence on weaning. Crit Care Med 2011;39:2627-30.</li>
+      <li>Silvetti S et al. Recommendations for fast-track extubation in adult cardiac surgery patients: a consensus statement (ITACTAIC). Minerva Anestesiol 2024;90:957-68.</li>
+      <li>Engelman DT et al. Guidelines for perioperative care in cardiac surgery: ERAS Society recommendations. JAMA Surg 2019;154:755-66.</li>
+      <li>Tonna JE et al. Management of adult patients supported with VV-ECMO: guideline from ELSO. ASAIO J 2021;67:601-10.</li>
+      <li>Getinge. Servo-u: product brochure 4.2, functionalities flyer 4.6, user's manual (versione installata).</li>
+    </ol>
+  </div>
+</section>
+</main>
+
+<footer>Servo-U Vent ICU v2.0 · Strumento di supporto decisionale, non dispositivo medico certificato · Dati salvati solo su questo dispositivo</footer>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* =========================================================
+   Helpers
+   ========================================================= */
+const $ = id => document.getElementById(id);
+const okN = x => typeof x === "number" && isFinite(x);
+function num(id){
+  const el = $(id); if(!el) return NaN;
+  const s = String(el.value).trim().replace(",", ".");
+  if(s === "") return NaN;
+  const n = parseFloat(s); return isFinite(n) ? n : NaN;
+}
+function fmt(x, d){ if(!okN(x)) return "—"; return x.toLocaleString("it-IT",{minimumFractionDigits:d,maximumFractionDigits:d}); }
+function div(a,b){ return (okN(a)&&okN(b)&&b!==0) ? a/b : NaN; }
+const STORE = "servou_vent_v2";
+let STATE = {};
+function load(){ try{ STATE = JSON.parse(localStorage.getItem(STORE)||"{}")||{}; }catch(e){ STATE = {}; } }
+function save(){ try{ localStorage.setItem(STORE, JSON.stringify(STATE)); }catch(e){} }
+
+/* =========================================================
+   Tabs
+   ========================================================= */
+const TABS = [
+  ["sintesi","Sintesi"],["paz","Paziente"],["mecc","Meccanica"],["oss","EGA/O₂"],["co2","CO₂"],
+  ["wean","Drive/Weaning"],["ptp","Transpolm."],["range","Range"],["ts","Troubleshooting"],["servo","Servo-U"],["fonti","Formule"]
+];
+function buildNav(){
+  const nav = $("nav");
+  TABS.forEach(([k,l])=>{
+    const b = document.createElement("button"); b.dataset.k = k; b.innerHTML = l + (k==="sintesi"?'<span class="cnt" id="navCnt" style="display:none">0</span>':"");
+    b.onclick = ()=>showTab(k); nav.appendChild(b);
+  });
+}
+function showTab(k){
+  document.querySelectorAll("section.tab").forEach(s=>s.classList.toggle("on", s.id==="t-"+k));
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on", b.dataset.k===k));
+  STATE._tab = k; save(); window.scrollTo({top:0});
+}
+
+/* =========================================================
+   Inputs definition
+   ========================================================= */
+const IN = {
+  paz: [
+    {id:"sex",l:"Sesso",type:"sel",opt:[["M","Maschio"],["F","Femmina"]],def:"M"},
+    {id:"age",l:"Età",u:"anni",def:""},
+    {id:"h",l:"Altezza",u:"cm",def:""},
+    {id:"w",l:"Peso reale",u:"kg",def:""}
+  ],
+  mecc: [
+    {id:"mode",l:"Modalità",type:"sel",opt:[["PRVC","PRVC"],["VC","VC (flusso costante)"],["PC","PC"],["VS","VS"],["PS","PS/CPAP"],["NAVA","NAVA"],["BIVENT","Bi-Vent/APRV"]],def:"PRVC"},
+    {id:"rr",l:"FR totale",u:"/min"},
+    {id:"vte",l:"VTe",u:"mL"},
+    {id:"vti",l:"VTi",u:"mL",h:"per % perdita"},
+    {id:"ti",l:"Ti",u:"s"},
+    {id:"ppeak",l:"Ppeak",u:"cmH₂O"},
+    {id:"pplat",l:"Pplat (hold)",u:"cmH₂O"},
+    {id:"peep",l:"PEEP impostata",u:"cmH₂O"},
+    {id:"peept",l:"PEEP totale (exp hold)",u:"cmH₂O"},
+    {id:"pmean",l:"Pmean",u:"cmH₂O"},
+    {id:"flow",l:"Flusso insp. (VC)",u:"L/min"},
+    {id:"pinsp",l:"P sopra PEEP (PC)",u:"cmH₂O"},
+    {id:"mve",l:"VE espirato",u:"L/min",h:"vuoto = RR×VTe"},
+    {id:"si",l:"Stress Index",u:"",h:"da Servo Compass"}
+  ],
+  oss: [
+    {id:"fio2",l:"FiO₂",u:"%"},
+    {id:"pao2",l:"PaO₂",u:"mmHg"},
+    {id:"paco2",l:"PaCO₂",u:"mmHg"},
+    {id:"ph",l:"pH",u:""},
+    {id:"sao2",l:"SaO₂",u:"%"},
+    {id:"spo2",l:"SpO₂",u:"%"},
+    {id:"hb",l:"Hb",u:"g/dL"},
+    {id:"patm",l:"P barometrica",u:"mmHg",def:"760"},
+    {id:"rq",l:"Quoziente resp.",u:"",def:"0.8"},
+    {id:"svo2",l:"SvO₂ / ScvO₂",u:"%"},
+    {id:"co",l:"Gittata cardiaca",u:"L/min"},
+    {id:"pao2t",l:"PaO₂ target",u:"mmHg",def:"90"}
+  ],
+  co2: [
+    {id:"etco2",l:"EtCO₂",u:"mmHg"},
+    {id:"vco2",l:"VCO₂",u:"mL/min"},
+    {id:"peco2",l:"PeCO₂ (se nota)",u:"mmHg"},
+    {id:"paco2t",l:"PaCO₂ target",u:"mmHg",def:"40"}
+  ],
+  wean: [
+    {id:"p01",l:"P0.1",u:"cmH₂O"},
+    {id:"pocc",l:"|ΔPocc|",u:"cmH₂O"},
+    {id:"rrs",l:"FR spontanea",u:"/min"},
+    {id:"vts",l:"Vt spontaneo",u:"mL"},
+    {id:"ps",l:"PS sopra PEEP",u:"cmH₂O"},
+    {id:"mip",l:"MIP / NIF",u:"cmH₂O",h:"inserire negativo, es. -30"},
+    {id:"edip",l:"Edi peak",u:"µV"},
+    {id:"edim",l:"Edi min",u:"µV"},
+    {id:"tee",l:"Spessore diafr. fine esp.",u:"mm"},
+    {id:"tei",l:"Spessore diafr. fine insp.",u:"mm"},
+    {id:"exc",l:"Escursione diaframma",u:"mm"},
+    {id:"xspo2",l:"SpO₂ (HFNO)",u:"%"},
+    {id:"xfio2",l:"FiO₂ (HFNO)",u:"%"},
+    {id:"xrr",l:"FR (HFNO)",u:"/min"}
+  ],
+  ptp: [
+    {id:"pesee",l:"Pes fine espirazione",u:"cmH₂O"},
+    {id:"pesei",l:"Pes fine inspirazione",u:"cmH₂O"}
+  ]
+};
+function buildInputs(){
+  Object.entries(IN).forEach(([sec, arr])=>{
+    const box = $("in-"+sec);
+    arr.forEach(d=>{
+      const f = document.createElement("div"); f.className = "f";
+      let ctl;
+      if(d.type==="sel"){
+        ctl = `<select id="${d.id}">${d.opt.map(o=>`<option value="${o[0]}">${o[1]}</option>`).join("")}</select>`;
+      } else {
+        ctl = `<input id="${d.id}" type="text" inputmode="decimal" autocomplete="off" placeholder="—">`;
+      }
+      f.innerHTML = `<label for="${d.id}">${d.l}</label><div class="w">${ctl}${d.u?`<span class="u">${d.u}</span>`:""}</div>${d.h?`<small>${d.h}</small>`:""}`;
+      box.appendChild(f);
+      const el = f.querySelector("input,select");
+      const v = (STATE[d.id]!==undefined) ? STATE[d.id] : (d.def||"");
+      el.value = v || (d.type==="sel" ? d.def : "");
+      el.addEventListener("input", ()=>{ STATE[d.id] = el.value; save(); recompute(); });
+    });
+  });
+}
+
+/* =========================================================
+   Scenarios
+   ========================================================= */
+const SCEN = {
+  postop:{n:"Post-cardiotomia standard",vt:7,t:[
+    ["Vt","6–8 mL/kg PBW"],["PEEP","5–8 cmH₂O"],["Pplat / ΔP","≤27 / ≤14"],["FR","12–18, normocapnia"],
+    ["FiO₂ / SpO₂","FiO₂ minima per SpO₂ 94–98%"],["PaCO₂","35–45 mmHg"],["Obiettivo","Automode/PS e estubazione ≤6 h se criteri soddisfatti"]]},
+  rv:{n:"Disfunzione VD / IP",vt:6,t:[
+    ["Vt","6 mL/kg PBW (evitare iperinsufflazione)"],["PEEP","5–8, ventilare vicino alla FRC"],["Pplat","&lt;27 cmH₂O"],
+    ["PaCO₂ / pH","35–40 mmHg / ≥7,35 – NO ipercapnia permissiva"],["SpO₂","≥94%; evitare ipossia (vasocostrizione ipossica)"],["Note","NO inalatorio/iloprost se indicato; attenzione a manovre di reclutamento e PEEP alta"]]},
+  ards:{n:"ARDS moderato-grave",vt:6,t:[
+    ["Vt","4–8 mL/kg PBW (iniziare da 6)"],["Pplat / ΔP","&lt;30 / ≤14"],["PEEP","Più alta, senza reclutamenti prolungati (ATS 2024); individualizzare su Cstat/ΔP/Pes"],
+    ["Prono","&gt;12 h/die se P/F &lt;150"],["Curaro","Forma grave precoce (ATS 2024)"],["Corticosteroidi","Suggeriti (ATS 2024, condizionale)"],["Escalation","ECMO VV in casi selezionati"]]},
+  copd:{n:"BPCO / air-trapping",vt:6,t:[
+    ["Vt","6–8 mL/kg"],["FR","10–14 per allungare Te"],["I:E","1:3 – 1:4; flusso insp. alto"],["Te / τ","≥3; PEEPi &lt;5"],
+    ["SpO₂","88–92% se ipercapnico cronico"],["PaCO₂","Target sul basale del paziente (pH 7,30–7,35 accettabile se no IP)"],["Cycle Off","40–60% in PS"]]},
+  obese:{n:"Obesità (BMI ≥35)",vt:7,t:[
+    ["Vt","6–8 mL/kg PBW (non sul peso reale!)"],["PEEP","8–12+, titolare (Pes se disponibile)"],["Pplat","Fino a 30–35 accettabile se PL,ei &lt;20"],
+    ["Posizione","Anti-Trendelenburg / semiseduto"],["Post-estubazione","CPAP/NIV o HFNO profilattica"]]},
+  ecmo:{n:"VA/VV-ECMO lung rest",vt:4,t:[
+    ["Vt","≤4–6 mL/kg (spesso 3–4)"],["Pplat / ΔP","≤20–25 / ≤10–14"],["PEEP","≥10 cmH₂O"],["FR","4–10 atti/min"],
+    ["FiO₂","0,3–0,5"],["Monitor","EGA radiale dx in VA (Harlequin); EtCO₂ come indice di gittata nativa"]]},
+  wean:{n:"Weaning / fast-track",vt:7,t:[
+    ["Modalità","Automode → PS/VS"],["SBT","PS 5–8 / PEEP 5, 30 min"],["Criteri","RSBI &lt;80–105, P0.1 1–3,5, MIP ≤ –20/–30"],
+    ["Emodinamica","Stabile, bassi vasoattivi, drenaggi &lt;100 mL/h"],["Post-estubazione","HFNO se rischio; ROX ≥4,88"]]}
+};
+function buildScen(){
+  const box = $("scen");
+  Object.entries(SCEN).forEach(([k,s])=>{
+    const b = document.createElement("button"); b.textContent = s.n; b.dataset.k = k;
+    b.onclick = ()=>{ STATE.scen = k; $("vtKg").value = s.vt; STATE.vtKg = s.vt; save(); renderScen(); recompute(); };
+    box.appendChild(b);
+  });
+}
+function renderScen(){
+  const k = STATE.scen || "postop"; const s = SCEN[k];
+  document.querySelectorAll("#scen button").forEach(b=>b.classList.toggle("on", b.dataset.k===k));
+  $("tgt").innerHTML = `<div class="tw"><table><tr><th>Obiettivo</th><th>${s.n}</th></tr>${s.t.map(r=>`<tr><td class="k">${r[0]}</td><td>${r[1]}</td></tr>`).join("")}</table></div>`;
+}
+
+/* =========================================================
+   Output rendering + flags
+   ========================================================= */
+let FLAGS = [], COUNTS = {ok:0,wa:0,da:0};
+const BOX = {};
+function out(sec, key, label, val, dec, unit, st, msg, fx, info, act){
+  // st: "ok" | "wa" | "da" | "in" | null
+  if(!BOX[sec]) BOX[sec] = [];
+  BOX[sec].push({key,label,val,dec,unit,st,msg,fx,info,act});
+  if(okN(val) || typeof val === "string"){
+    if(st==="ok") COUNTS.ok++;
+    if(st==="wa"||st==="da"){ COUNTS[st]++; FLAGS.push({st,label,val,dec,unit,msg,act,sec}); }
+  }
+}
+function render(){
+  Object.entries(BOX).forEach(([sec, arr])=>{
+    const box = $("out-"+sec); if(!box) return;
+    const opened = new Set([...box.querySelectorAll(".o.open")].map(e=>e.dataset.k));
+    box.innerHTML = arr.map(o=>{
+      const has = okN(o.val) || typeof o.val === "string";
+      const vs = typeof o.val === "string" ? o.val : fmt(o.val, o.dec);
+      const cls = has && o.st ? o.st : "";
+      return `<div class="o ${cls}${opened.has(o.key)?" open":""}" data-k="${o.key}">
+        <div class="t"><span class="l">${o.label}</span><span class="v">${vs}${has&&o.unit?`<small>${o.unit}</small>`:""}</span></div>
+        ${has && o.msg ? `<div class="m">${o.msg}</div>` : ""}
+        <div class="x">${o.fx?`<div class="fx">${o.fx}</div>`:""}${o.info?`<div>${o.info}</div>`:""}${o.act&&has&&(o.st==="wa"||o.st==="da")?`<div style="margin-top:4px"><b>Azione:</b> ${o.act}</div>`:""}</div>
+      </div>`;
+    }).join("");
+    box.querySelectorAll(".o").forEach(e=>e.onclick=()=>e.classList.toggle("open"));
+  });
+}
+function band(x, rules){ // rules: array of [test(x)=>bool, st, msg]
+  if(!okN(x)) return [null,""];
+  for(const r of rules){ if(r[0](x)) return [r[1], r[2]]; }
+  return [null,""];
+}
+
+/* =========================================================
+   Core computation
+   ========================================================= */
+function recompute(){
+  FLAGS = []; COUNTS = {ok:0,wa:0,da:0};
+  Object.keys(BOX).forEach(k=>delete BOX[k]);
+  const scen = STATE.scen || "postop";
+  const vtKgT = parseFloat($("vtKg").value);
+  $("vtKgOut").textContent = vtKgT.toLocaleString("it-IT") + " mL/kg";
+
+  /* ---------- Paziente ---------- */
+  const sex = $("sex").value, age = num("age"), H = num("h"), W = num("w");
+  const pbw = okN(H) ? (sex==="M" ? 50 : 45.5) + 0.91*(H-152.4) : NaN;
+  const bmi = div(W, (H/100)**2);
+  const bsa = (okN(H)&&okN(W)) ? Math.sqrt(H*W/3600) : NaN;
+  const vtT = pbw*vtKgT;
+  out("paz","pbw","Peso predetto (PBW)",pbw,1,"kg","in",okN(pbw)?"Base per Vt e indici normalizzati":"","PBW = "+(sex==="M"?"50":"45,5")+" + 0,91×(altezza – 152,4)","Il polmone è proporzionato all'altezza e al sesso, non al peso: usare il peso reale nell'obeso porta a Vt eccessivi.");
+  out("paz","vtt","Vt target ("+vtKgT.toLocaleString("it-IT")+" mL/kg)",vtT,0,"mL","in","Range 4/6/8 mL/kg: "+(okN(pbw)?`${fmt(pbw*4,0)} / ${fmt(pbw*6,0)} / ${fmt(pbw*8,0)} mL`:"—"),"Vt = PBW × mL/kg","Impostare in PRVC/VC; in PS/VS verificare che il Vt spontaneo resti entro 8 mL/kg.");
+  let [st,msg] = band(bmi,[[x=>x<18.5,"wa","Sottopeso"],[x=>x<25,"ok","Normopeso"],[x=>x<30,"wa","Sovrappeso"],[x=>x<35,"wa","Obesità I: PEEP più alta, Vt su PBW"],[x=>true,"da","Obesità ≥II: considerare Pes, PEEP 8–12+, anti-Trendelenburg"]]);
+  out("paz","bmi","BMI",bmi,1,"kg/m²",st,msg,"BMI = peso/altezza²","",st==="da"||st==="wa"?"Vt sempre su PBW; titolare PEEP (eventualmente con Pes); posizione semiseduta; profilassi post-estubazione CPAP/HFNO.":"");
+  out("paz","bsa","BSA (Mosteller)",bsa,2,"m²","in","Per DO₂I, CI","BSA = √(altezza×peso/3600)");
+  out("paz","wpbw","Peso reale / PBW",div(W,pbw)*100,0,"%",null,"","Peso reale/PBW × 100","Se >130%: il paziente è significativamente sovrappeso; il calcolo su peso reale sovrastimerebbe il Vt del corrispondente %.");
+
+  /* ---------- Meccanica ---------- */
+  const mode = $("mode").value;
+  const rr = num("rr"), vte = num("vte"), vti = num("vti"), ti = num("ti");
+  const ppeak = num("ppeak"), pplat = num("pplat"), peep = num("peep"); let peept = num("peept");
+  const pmean = num("pmean"), flow = num("flow"), pinsp = num("pinsp"), si = num("si");
+  let mve = num("mve"); const mveCalc = okN(mve) ? mve : (okN(rr)&&okN(vte) ? rr*vte/1000 : NaN);
+  const peepTot = okN(peept) ? peept : peep;
+  const ttot = div(60, rr), te = (okN(ttot)&&okN(ti)) ? ttot-ti : NaN;
+  const ie = div(te, ti);
+  const vtkg = div(vte, pbw);
+
+  [st,msg] = band(vtkg, scen==="ecmo"
+    ? [[x=>x<=6,"ok","Lung rest adeguato"],[x=>x<=8,"wa","Superiore al target lung rest"],[x=>true,"da","Eccessivo in ECMO"]]
+    : [[x=>x<4,"wa","Ultra-protettivo: verificare PaCO₂/pH"],[x=>x<=8,"ok","Protettivo (4–8 mL/kg)"],[x=>x<=10,"wa","Sopra 8 mL/kg PBW"],[x=>true,"da","Volutrauma: ridurre Vt"]]);
+  out("mecc","vtkg","Vt / PBW",vtkg,1,"mL/kg",st,msg,"VTe / PBW","Indice primario di protezione polmonare. In PS/VS un Vt spontaneo alto indica drive elevato o sovra-assistenza.","Ridurre Vt impostato (PRVC/VC) o PS; se drive alto valutare dolore, acidosi, sedazione; compensare con FR.");
+
+  out("mecc","ttot","Ttot / Te",okN(ttot)?`${fmt(ttot,2)} / ${fmt(te,2)}`:NaN,0,"s",null,"","Ttot = 60/FR; Te = Ttot – Ti");
+  [st,msg] = band(ie,[[x=>x<1,"da","Rapporto inverso: rischio PEEPi ed emodinamico"],[x=>x<1.5,"wa","Te breve"],[x=>true,"ok","I:E 1:"+fmt(ie,1)]]);
+  out("mecc","ie","Rapporto I:E",okN(ie)?"1:"+fmt(ie,1):NaN,0,"",st,msg,"I:E = 1 : (Te/Ti)","Valori 1:2 standard; 1:3–1:4 nell'ostruttivo.","Ridurre Ti o FR; verificare curva di flusso espiratoria.");
+  out("mecc","mv","Volume minuto",mveCalc,2,"L/min",null,okN(mveCalc)?"≈ "+fmt(div(mveCalc*1000,pbw),0)+" mL/kg/min PBW":"","VE = FR × VTe","Normale ~100 mL/kg/min; valori alti con PaCO₂ alta = spazio morto aumentato.");
+
+  const dp = okN(pplat)&&okN(peepTot) ? pplat-peepTot : NaN;
+  [st,msg] = band(pplat,[[x=>x<=27,"ok","Entro target"],[x=>x<=30,"wa","Al limite (28–30)"],[x=>true,"da","Oltre 30: rischio barotrauma"]]);
+  if(scen==="ecmo" && okN(pplat) && pplat>25){ st="da"; msg="Oltre 25 in lung rest ECMO"; }
+  out("mecc","pplat","Pressione di plateau",pplat,0,"cmH₂O",st,msg,"Insp. hold 0,5–2 s, paziente passivo","Stima la pressione alveolare di fine inspirazione. Non affidabile con sforzi attivi del paziente.","Ridurre Vt (fino a 4 mL/kg) e compensare con FR; ricercare causa di ↓compliance; valutare Pes nell'obeso/parete rigida.");
+  [st,msg] = band(dp,[[x=>x<=14,"ok","Protettiva (Amato 2015)"],[x=>x<20,"wa","≥15: ridurre Vt o ottimizzare PEEP"],[x=>true,"da","≥20: stress elevato"]]);
+  if(scen==="ecmo" && okN(dp) && dp>14){ st="da"; msg="Oltre target lung rest (≤10–14)"; }
+  out("mecc","dp","Driving pressure ΔP",dp,0,"cmH₂O",st,msg,"ΔP = Pplat – PEEP totale","Esprime il Vt rapportato al polmone ventilabile (baby lung). Predittore di mortalità più forte di Vt e Pplat.","↓Vt; prova PEEP ±2 osservando ΔP: se ΔP scende la PEEP recluta, se sale sovradistende.");
+  [st,msg] = band(ppeak,[[x=>x<35,"ok","Accettabile"],[x=>x<=40,"wa","Elevata: confrontare con Pplat"],[x=>true,"da","Molto elevata"]]);
+  out("mecc","ppeak","Pressione di picco",ppeak,0,"cmH₂O",st,msg,"Componente resistiva + elastica + PEEP","", "Eseguire Insp. hold: algoritmo Ppeak/Pplat (Troubleshooting).");
+  const pres = okN(ppeak)&&okN(pplat) ? ppeak-pplat : NaN;
+  [st,msg] = band(pres,[[x=>x<=5,"ok","Resistenze normali"],[x=>x<=10,"wa","Resistenze aumentate"],[x=>true,"da","Componente resistiva elevata"]]);
+  out("mecc","pres","Ppeak – Pplat",pres,0,"cmH₂O",st,msg,"Gradiente resistivo","In PRVC/PC il valore dipende dal flusso decelerato ed è meno interpretabile che in VC.","Aspirazione, controllo tubo/morso/HME, broncodilatatori, considerare fibroscopia.");
+
+  const cstat = div(vte, dp), ers = div(1000, cstat);
+  [st,msg] = band(cstat,[[x=>x>=50,"ok","Compliance conservata"],[x=>x>=30,"wa","Ridotta"],[x=>true,"da","Gravemente ridotta"]]);
+  out("mecc","cstat","Compliance statica",cstat,1,"mL/cmH₂O",st,msg,"Cstat = VTe / (Pplat – PEEPtot)","Normale nell'intubato 50–80. Post-CEC spesso 35–50 per atelettasia, edema interstiziale e drenaggi.","Eco polmonare/RX: atelettasia (PEEP, fisioterapia, broncoaspirazione), versamento (drenaggio), edema (diuretico), PNX (drenaggio), addome (decompressione).");
+  out("mecc","ers","Elastanza Ers",ers,1,"cmH₂O/L",null,"","Ers = 1/Cstat");
+  const cdyn = okN(ppeak)&&okN(peep) ? div(vte, ppeak-peep) : NaN;
+  out("mecc","cdyn","Compliance dinamica",cdyn,1,"mL/cmH₂O","in",okN(cdyn)&&okN(cstat)?(cstat-cdyn>15?"Cstat ≫ Cdyn: componente resistiva":"Coerente con Cstat"):"","Cdyn = VTe / (Ppeak – PEEP)","Include la componente resistiva. Il Servo-U calcola una Cdyn atto per atto (Open Lung Tool) usata per la titolazione della PEEP.");
+
+  const raw = (mode==="VC" && okN(flow)) ? div(pres, flow/60) : NaN;
+  [st,msg] = band(raw,[[x=>x<=10,"ok","Normale per paziente intubato"],[x=>x<=15,"wa","Aumentata"],[x=>true,"da","Elevata: ostruzione"]]);
+  out("mecc","raw","Resistenza vie aeree (Raw)",mode==="VC"?raw:"solo VC",1,mode==="VC"?"cmH₂O/L/s":"",mode==="VC"?st:"in",mode==="VC"?msg:"Calcolo valido con flusso costante","Raw = (Ppeak – Pplat) / flusso [L/s]","Il tubo stesso contribuisce ~5–8 cmH₂O/L/s.","Aspirazione, broncodilatatore, verifica tubo/HME; considerare umidificazione attiva.");
+  const tau = okN(raw)&&okN(cstat) ? raw*cstat/1000 : NaN;
+  out("mecc","tau","Costante di tempo τ",tau,2,"s","in",okN(tau)?"Espirazione completa ≈ 3τ = "+fmt(3*tau,2)+" s":"","τ = Raw × Cstat");
+  const teTau = div(te, tau);
+  [st,msg] = band(teTau,[[x=>x>=3,"ok","Svuotamento completo (≥95%)"],[x=>x>=2,"wa","Svuotamento parziale: rischio PEEPi"],[x=>true,"da","Air-trapping probabile"]]);
+  out("mecc","tetau","Te / τ",teTau,1,"",st,msg,"Te/τ ≥3 garantisce ~95% di svuotamento","","↓FR, ↓Ti/↑flusso, ↓Vt; broncodilatatori; misura PEEPi.");
+  const pi = okN(peept)&&okN(peep) ? peept-peep : NaN;
+  [st,msg] = band(pi,[[x=>x<=1,"ok","Assente/trascurabile"],[x=>x<=5,"wa","PEEP intrinseca presente"],[x=>true,"da","PEEPi elevata"]]);
+  out("mecc","pi","PEEP intrinseca",pi,1,"cmH₂O",st,msg,"PEEPi = PEEP totale – PEEP impostata","↓ritorno venoso e gittata, sforzi inefficaci, sovrastima di Pplat.","Algoritmo PEEPi (Troubleshooting); in assistita PEEP esterna ~70–80% PEEPi.");
+
+  const vtL = vte/1000;
+  let mp = NaN, mpF = "";
+  if((mode==="VC") && okN(rr)&&okN(vtL)&&okN(ppeak)&&okN(dp)){ mp = 0.098*rr*vtL*(ppeak-0.5*dp); mpF = "VC: 0,098 × FR × Vt × (Ppeak – ½ΔP)"; }
+  else if(okN(rr)&&okN(vtL)&&okN(peep)){
+    const dpi = okN(pinsp) ? pinsp : (okN(ppeak) ? ppeak-peep : NaN);
+    if(okN(dpi)){ mp = 0.098*rr*vtL*(dpi+peep); mpF = "Pressometrica (Becher): 0,098 × FR × Vt × (ΔPinsp + PEEP)"; }
+  }
+  [st,msg] = band(mp,[[x=>x<12,"ok","Basso rischio"],[x=>x<=17,"wa","Zona intermedia (12–17)"],[x=>true,"da",">17 J/min: associata a mortalità"]]);
+  out("mecc","mp","Potenza meccanica",mp,1,"J/min",st,msg,mpF||"Richiede FR, Vt, Ppeak (o P insp), PEEP","Integra pressioni, volume, flusso e frequenza. Non esiste una soglia di sicurezza universale: utile soprattutto come trend.","Ridurre i determinanti modificabili: ΔP (Vt), FR (tollerando PaCO₂ se emodinamica lo consente), PEEP non necessaria.");
+  const ddr = okN(dp)&&okN(rr) ? 4*dp+rr : NaN;
+  out("mecc","ddr","Indice 4·ΔP + FR",ddr,0,"","in",okN(ddr)?"Ogni cmH₂O di ΔP pesa come 4 atti/min":"","4×ΔP + FR (Costa 2021)","Semplificazione della potenza meccanica: guida a ridurre preferenzialmente la ΔP rispetto alla FR.");
+  const leak = okN(vti)&&okN(vte) ? (vti-vte)/vti*100 : NaN;
+  [st,msg] = band(leak,[[x=>x<10,"ok","Perdita trascurabile"],[x=>x<=20,"wa","Perdita significativa"],[x=>true,"da","Perdita importante"]]);
+  out("mecc","leak","Perdita VTi→VTe",leak,0,"%",st,msg,"(VTi – VTe)/VTi","Cuffia, drenaggi in aspirazione con perdita aerea, fistola, circuito, sensori.","Pressione cuffia 25–30, controlla circuito e drenaggi; vedi Troubleshooting → VTe basso.");
+  [st,msg] = band(si,[[x=>x<0.9,"wa","Reclutamento tidalico: PEEP insufficiente?"],[x=>x<=1.1,"ok","Ventilazione lineare"],[x=>true,"da","Sovradistensione: ↓Vt o ↓PEEP"]]);
+  out("mecc","si","Stress Index",si,2,"",st,msg,"Coefficiente b di Paw = a·tᵇ + c (VC, flusso costante, passivo)","Valido solo in VC a flusso costante senza sforzi del paziente.","SI <0,9: prova ↑PEEP; SI >1,1: ↓Vt e/o ↓PEEP; verifica con ΔP.");
+
+  /* ---------- Ossigenazione ---------- */
+  let fio2 = num("fio2"); if(okN(fio2) && fio2>1.0001) fio2 = fio2/100;
+  const pao2 = num("pao2"), paco2 = num("paco2"), ph = num("ph"), sao2p = num("sao2"), spo2 = num("spo2"), hb = num("hb");
+  const patm = okN(num("patm")) ? num("patm") : 760, rq = okN(num("rq")) ? num("rq") : 0.8;
+  const svo2p = num("svo2"), co = num("co"), pao2t = num("pao2t");
+  const pAO2 = okN(fio2)&&okN(paco2) ? fio2*(patm-47) - paco2/rq : NaN;
+  const pf = div(pao2, fio2), sf = div(spo2, fio2);
+
+  [st,msg] = band(pao2,[[x=>x<60,"da","Ipossiemia"],[x=>x<70,"wa","Ai limiti inferiori"],[x=>x<=120,"ok","Normossia"],[x=>true,"wa","Iperossia: ridurre FiO₂"]]);
+  out("oss","pao2","PaO₂",pao2,0,"mmHg",st,msg,"","Nel post-cardiochirurgico l'iperossia aumenta resistenze sistemiche e coronariche.", pao2<70?"Algoritmo ipossiemia (Troubleshooting).":"Ridurre FiO₂ a step di 5–10% verso SpO₂ 94–98%.");
+  [st,msg] = band(spo2,[[x=>x<90,"da","Desaturazione"],[x=>x<94,"wa","Sotto target 94%"],[x=>x<=98,"ok","In target"],[x=>true,(okN(fio2)&&fio2>0.3)?"wa":"ok",(okN(fio2)&&fio2>0.3)?"SpO₂ >98% con FiO₂ >30%: ridurre FiO₂":"Normale"]]);
+  out("oss","spo2","SpO₂",spo2,0,"%",st,msg,"","Affidabilità ridotta con vasocostrizione, ipotermia, pigmentazione cutanea, MetHb/COHb.","Verifica curva pletismografica e correla con SaO₂.");
+  [st,msg] = band(fio2,[[x=>x<=0.5,"ok","Accettabile"],[x=>x<=0.6,"wa","Elevata"],[x=>true,"da","Tossicità O₂ / atelettasia da riassorbimento"]]);
+  out("oss","fio2o","FiO₂",okN(fio2)?fio2*100:NaN,0,"%",st,msg,"","","Ottimizza PEEP/reclutamento alveolare e cerca la causa per ridurre FiO₂.");
+  [st,msg] = band(ph,[[x=>x<7.25,"da","Acidemia marcata"],[x=>x<7.35,"wa","Acidemia"],[x=>x<=7.45,"ok","Normale"],[x=>x<=7.55,"wa","Alcalemia"],[x=>true,"da","Alcalemia marcata"]]);
+  out("oss","ph","pH",ph,2,"",st,msg,"","L'acidosi aumenta le resistenze vascolari polmonari: rilevante nella disfunzione VD.","Distinguere componente respiratoria (PaCO₂) e metabolica (lattati, BE) – usa l'app EGA.");
+  const pc = (scen==="rv") ? [[x=>x<30,"da","Ipocapnia marcata"],[x=>x<35,"wa","Ipocapnia"],[x=>x<=40,"ok","Target VD/IP 35–40"],[x=>x<=45,"wa","Sopra target VD/IP: ↑PVR"],[x=>true,"da","Ipercapnia: deleteria per il VD"]]
+                           : [[x=>x<30,"da","Ipocapnia marcata (vasocostrizione cerebrale/coronarica)"],[x=>x<35,"wa","Ipocapnia"],[x=>x<=45,"ok","Normocapnia"],[x=>x<=55,"wa","Ipercapnia"],[x=>true,"da","Ipercapnia marcata"]];
+  [st,msg] = band(paco2, pc);
+  out("oss","paco2","PaCO₂",paco2,0,"mmHg",st,msg,"","", "Correggi con la scheda CO₂ (FR/Vt necessari per il target).");
+
+  [st,msg] = band(pf,[[x=>x>300,"ok","Normale/lieve compromissione"],[x=>x>200,"wa","Range ARDS lieve (200–300)"],[x=>x>100,"da","Range ARDS moderata (100–200)"],[x=>true,"da","Range ARDS grave (≤100)"]]);
+  out("oss","pf","P/F",pf,0,"mmHg",st,msg,"P/F = PaO₂ / FiO₂","Classificazione Global ARDS 2024 (intubato). La diagnosi richiede anche esordio acuto, infiltrati bilaterali (RX/TC/eco) non spiegati da edema cardiogeno o sovraccarico.","Valuta PEEP, eco polmonare, bilancio idrico; se ≤150 considerare prono; se ≤100 escalation (curaro, ECMO).");
+  const sfValid = okN(spo2) && spo2<=97;
+  [st,msg] = sfValid ? band(sf,[[x=>x>315,"ok","Oltre soglia ARDS"],[x=>x>235,"wa","Range lieve (235–315)"],[x=>x>148,"da","Range moderato (148–235)"],[x=>true,"da","Range grave (≤148)"]]) : ["in", okN(spo2)?"Non valido con SpO₂ >97%":""];
+  out("oss","sf","S/F",okN(sf)?sf:NaN,0,"",st,msg,"S/F = SpO₂ / FiO₂ (valido se SpO₂ ≤97%)","Alternativa validata al P/F nella Global Definition 2024.");
+  const aa = okN(pAO2)&&okN(pao2) ? pAO2-pao2 : NaN, aaExp = okN(age) ? age/4+4 : NaN;
+  out("oss","pAO2","PAO₂ alveolare",pAO2,0,"mmHg",null,"","PAO₂ = FiO₂×(Patm – 47) – PaCO₂/RQ");
+  out("oss","aa","Gradiente A–a",aa,0,"mmHg","in",okN(aaExp)?"Atteso in aria ambiente ≈ "+fmt(aaExp,0)+" mmHg (età/4+4); aumenta con FiO₂":"","A–a = PAO₂ – PaO₂","Gradiente aumentato = shunt, V/Q mismatch o difetto di diffusione; normale con ipossiemia = ipoventilazione o bassa FiO₂.");
+  const aA = div(pao2, pAO2);
+  [st,msg] = band(aA,[[x=>x>=0.75,"ok","Scambio conservato"],[x=>x>=0.35,"wa","Compromissione moderata"],[x=>true,"da","Compromissione grave"]]);
+  out("oss","aA","Rapporto a/A",aA,2,"",st,msg,"a/A = PaO₂ / PAO₂","Relativamente indipendente dalla FiO₂: utile per prevedere la FiO₂ necessaria.");
+  const oi = okN(pmean)&&okN(fio2)&&okN(pao2) ? pmean*fio2*100/pao2 : NaN;
+  [st,msg] = band(oi,[[x=>x<5,"ok","Basso costo pressorio"],[x=>x<16,"wa","Intermedio"],[x=>x<30,"da","Elevato"],[x=>true,"da","Molto elevato: valutare ECMO"]]);
+  out("oss","oi","Oxygenation Index (OI)",oi,1,"",st,msg,"OI = Pmean × FiO₂×100 / PaO₂","Incorpora la Pmean: due pazienti con stesso P/F ma Pmean diversa hanno gravità diversa. Soglie adulte non standardizzate: usare come trend.","Se ≥16 in peggioramento: strategia ARDS grave (prono, curaro, ECMO).");
+  const osi = okN(pmean)&&okN(fio2)&&okN(spo2)&&spo2<=97 ? pmean*fio2*100/spo2 : NaN;
+  out("oss","osi","Oxygen Saturation Index (OSI)",osi,1,"","in",okN(osi)?"Alternativa non invasiva all'OI":"","OSI = Pmean × FiO₂×100 / SpO₂ (SpO₂ ≤97%)");
+  const sao2 = okN(sao2p) ? sao2p/100 : (okN(spo2)?spo2/100:NaN);
+  const cao2 = okN(hb)&&okN(sao2) ? 1.34*hb*sao2 + 0.003*(okN(pao2)?pao2:0) : NaN;
+  [st,msg] = band(cao2,[[x=>x>=17,"ok","Normale"],[x=>x>=14,"wa","Ridotto"],[x=>true,"da","Gravemente ridotto"]]);
+  out("oss","cao2","Contenuto arterioso O₂",cao2,1,"mL/dL",st,msg,"CaO₂ = 1,34×Hb×SaO₂ + 0,003×PaO₂","Dipende quasi interamente da Hb e saturazione: aumentare la PaO₂ oltre 100 aggiunge pochissimo.","Correggere anemia secondo soglia trasfusionale di reparto; ottimizzare SaO₂.");
+  const do2 = okN(cao2)&&okN(co) ? cao2*co*10 : NaN, do2i = div(do2, bsa);
+  [st,msg] = band(do2i,[[x=>x>=500,"ok","Adeguato"],[x=>x>=400,"wa","Ai limiti"],[x=>true,"da","Insufficiente"]]);
+  out("oss","do2","DO₂ / DO₂I",okN(do2)?do2:NaN,0,"mL/min",st,okN(do2i)?"DO₂I "+fmt(do2i,0)+" mL/min/m² – "+msg:msg,"DO₂ = CaO₂ × GC × 10","","Agire su gittata (precarico, inotropi), Hb e SaO₂.");
+  const svo2 = okN(svo2p) ? svo2p/100 : NaN;
+  const cvo2 = okN(hb)&&okN(svo2) ? 1.34*hb*svo2 + 0.003*40 : NaN;
+  const o2er = okN(cao2)&&okN(cvo2) ? (cao2-cvo2)/cao2*100 : NaN;
+  [st,msg] = band(o2er,[[x=>x<20,"wa","Bassa: shunt periferico/disossia o DO₂ elevato"],[x=>x<=30,"ok","Normale"],[x=>x<=40,"wa","Aumentata"],[x=>true,"da","Elevata: DO₂ insufficiente"]]);
+  out("oss","o2er","Estrazione O₂ (O₂ER)",o2er,0,"%",st,msg,"O₂ER = (CaO₂ – CvO₂)/CaO₂ (PvO₂ stimata 40)","","Valutare gittata, Hb, lattati; correlare con ScvO₂/SvO₂.");
+  const cco2 = okN(hb)&&okN(pAO2) ? 1.34*hb + 0.003*pAO2 : NaN;
+  const shunt = okN(cco2)&&okN(cao2)&&okN(cvo2) ? (cco2-cao2)/(cco2-cvo2)*100 : NaN;
+  [st,msg] = band(shunt,[[x=>x<10,"ok","Fisiologico"],[x=>x<=20,"wa","Aumentato"],[x=>x<=30,"da","Significativo"],[x=>true,"da","Grave: poco responsivo a FiO₂"]]);
+  out("oss","shunt","Shunt Qs/Qt",shunt,0,"%",st,msg,"Qs/Qt = (CcO₂ – CaO₂)/(CcO₂ – CvO₂)","Stima più accurata a FiO₂ 1,0 e con SvO₂ (sangue venoso misto). Con FiO₂ <1 esprime l'admixture venosa totale.","Shunt >20%: reclutare (PEEP), trattare causa (atelettasia, edema, consolidamento); FiO₂ da sola poco efficace.");
+  const fio2n = okN(aA)&&okN(pao2t)&&okN(paco2) ? ((pao2t/aA) + paco2/rq)/(patm-47)*100 : NaN;
+  out("oss","fio2n","FiO₂ per PaO₂ target",okN(fio2n)?Math.min(fio2n,100):NaN,0,"%","in",okN(fio2n)?(fio2n>100?"Target non raggiungibile con sola FiO₂":"Per PaO₂ "+fmt(pao2t,0)+" mmHg, a/A costante"):"","FiO₂ = (PaO₂target/(a/A) + PaCO₂/RQ)/(Patm – 47)","Assume a/A stabile; con shunt elevato la risposta reale è inferiore.");
+
+  /* ---------- CO2 ---------- */
+  const etco2 = num("etco2"), vco2 = num("vco2"); let peco2 = num("peco2"); const paco2t = num("paco2t");
+  const peco2C = okN(peco2) ? peco2 : (okN(vco2)&&okN(mveCalc) ? vco2/(mveCalc*1000)*(patm-47) : NaN);
+  const grad = okN(paco2)&&okN(etco2) ? paco2-etco2 : NaN;
+  [st,msg] = band(grad,[[x=>x<0,"wa","EtCO₂ > PaCO₂: verificare campionamento"],[x=>x<=5,"ok","Normale"],[x=>x<=10,"wa","Spazio morto alveolare aumentato"],[x=>true,"da","Spazio morto alveolare elevato"]]);
+  out("co2","grad","Gradiente Pa–EtCO₂",grad,0,"mmHg",st,msg,"PaCO₂ – EtCO₂","Aumenta con ↓gittata cardiaca, embolia polmonare, iperinsufflazione/PEEP eccessiva, ipovolemia.","Valuta gittata cardiaca e volemia, PEEPi, PEEP eccessiva; considera EP.");
+  const avdsf = div(grad, paco2);
+  out("co2","avdsf","Frazione spazio morto alveolare",avdsf,2,"","in",okN(avdsf)?(avdsf>0.15?"Aumentata":"Nei limiti"):"","(PaCO₂ – EtCO₂)/PaCO₂");
+  out("co2","peco2","PeCO₂ (misto espirato)",peco2C,1,"mmHg",null,okN(peco2)?"Inserita":(okN(peco2C)?"Calcolata da VCO₂/VE":""),"PeCO₂ = VCO₂/VE × (Patm – 47)","Calcolo approssimato (VCO₂ in STPD vs VE in BTPS): preferire PeCO₂ da capnografia volumetrica se disponibile.");
+  const vdvt = okN(paco2)&&okN(peco2C) ? (paco2-peco2C)/paco2 : NaN;
+  [st,msg] = band(vdvt,[[x=>x<=0.40,"ok","Atteso nel paziente intubato"],[x=>x<=0.60,"wa","Aumentato"],[x=>true,"da","Marcatamente aumentato (prognosi ARDS)"]]);
+  out("co2","vdvt","VD/VT fisiologico",vdvt,2,"",st,msg,"Bohr-Enghoff: (PaCO₂ – PeCO₂)/PaCO₂","Include spazio morto anatomico, strumentale e alveolare.","Riduci spazio morto strumentale (HME→umidificazione attiva), PEEPi, sovradistensione; valuta perfusione polmonare.");
+  const vd = vdvt*vte, va = okN(vd)&&okN(rr) ? (vte-vd)*rr/1000 : NaN;
+  out("co2","vd","Spazio morto VD",vd,0,"mL","in",okN(vd)?"≈ "+fmt(div(vd,pbw),1)+" mL/kg PBW":"","VD = VD/VT × Vt");
+  out("co2","va","Ventilazione alveolare",va,2,"L/min","in","","VA = (Vt – VD) × FR");
+  const vr = okN(mveCalc)&&okN(paco2)&&okN(pbw) ? (mveCalc*1000*paco2)/(pbw*100*37.5) : NaN;
+  [st,msg] = band(vr,[[x=>x<1.5,"ok","Efficienza conservata"],[x=>x<=2,"wa","Ridotta"],[x=>true,"da",">2: associato a mortalità"]]);
+  out("co2","vr","Ventilatory Ratio",vr,2,"",st,msg,"VR = (VE[mL/min] × PaCO₂)/(PBW×100×37,5)","Non richiede capnografia; ≈1 nel polmone sano.","Valuta spazio morto, ↑VCO₂ (febbre, brivido), PEEPi.");
+  const rrN = okN(rr)&&okN(paco2)&&okN(paco2t) ? rr*paco2/paco2t : NaN;
+  const vtN = okN(vd)&&okN(va)&&okN(paco2)&&okN(paco2t)&&okN(rr) ? vd + (va*1000*paco2/paco2t)/rr : (okN(vte)&&okN(paco2)&&okN(paco2t) ? vte*paco2/paco2t : NaN);
+  out("co2","rrN","FR per PaCO₂ target",rrN,0,"/min",okN(rrN)&&rrN>30?"wa":"in",okN(rrN)?(rrN>30?"FR molto alta: verificare Te/τ e PEEPi":"A Vt e VD costanti"):"","FR nuova = FR × PaCO₂/PaCO₂target","Prima di aumentare la FR verificare Te ≥3τ.");
+  const vtNkg = div(vtN, pbw);
+  out("co2","vtN","Vt per PaCO₂ target (a FR costante)",vtN,0,"mL",okN(vtNkg)&&vtNkg>8?"wa":"in",okN(vtNkg)?"= "+fmt(vtNkg,1)+" mL/kg PBW"+(vtNkg>8?" – oltre 8: preferire ↑FR":""):"",okN(vd)?"Vt nuovo = VD + VA necessaria/FR":"VD non noto: Vt × PaCO₂/target (approssimazione per difetto)","Con VD costante la correzione di Vt è più efficiente della FR, ma limitata da ΔP e 8 mL/kg.");
+
+  /* ---------- Drive / Weaning ---------- */
+  const p01 = num("p01"), pocc = Math.abs(num("pocc")), rrs = num("rrs"), vts = num("vts"), ps = num("ps");
+  let mip = num("mip"); const edip = num("edip"), edim = num("edim"), tee = num("tee"), tei = num("tei"), exc = num("exc");
+  [st,msg] = band(p01,[[x=>x<1,"wa","Drive basso: sovra-assistenza/sedazione"],[x=>x<=3.5,"ok","Drive adeguato"],[x=>true,"da","Drive elevato: rischio P-SILI e fatica"]]);
+  out("wean","p01","P0.1",p01,1,"cmH₂O",st,msg,"Caduta di pressione nei primi 100 ms di uno sforzo occluso","Indice di drive neurale indipendente dal livello di supporto (Telias 2020). Media di più misure.", p01<1?"↓PS/NAVA level, ridurre sedazione.":"Cercare causa (dolore, acidosi, ansia, ipossia, febbre); ↑supporto se carico eccessivo.");
+  const pmus = okN(pocc) ? 0.75*pocc : NaN;
+  [st,msg] = band(pmus,[[x=>x<5,"wa","Sforzo basso: rischio atrofia diaframmatica"],[x=>x<=10,"ok","Sforzo protettivo per diaframma"],[x=>x<=15,"wa","Sforzo elevato"],[x=>true,"da","Sforzo eccessivo"]]);
+  out("wean","pmus","Pmus stimata",pmus,1,"cmH₂O",st,msg,"Pmus = 0,75 × |ΔPocc| (Bertoni 2019)","Target diaframma-protettivo ≈ 5–10 cmH₂O (Goligher 2020).","Sforzo alto: ↑supporto o ↓drive; basso: ↓supporto/sedazione.");
+  const ppkA = (okN(ps)&&okN(peep)) ? ps+peep : (["PS","VS","NAVA"].includes(mode) && okN(ppeak) ? ppeak : NaN);
+  const dpld = okN(pocc)&&okN(ppkA)&&okN(peep) ? (ppkA-peep) + 0.66*pocc : NaN;
+  [st,msg] = band(dpld,[[x=>x<=15,"ok","Stress dinamico accettabile"],[x=>x<=20,"wa","Elevato"],[x=>true,"da","Eccessivo: rischio P-SILI"]]);
+  out("wean","dpld","ΔPL,dyn stimata",dpld,1,"cmH₂O",st,msg,"(Ppeak atto assistito – PEEP) + 2/3 × |ΔPocc|; usa PS+PEEP se inserita","Stima la driving pressure transpolmonare dinamica in respiro assistito.","↓PS se sforzo modesto e supporto alto; se drive alto, trattarne la causa / sedazione mirata.");
+  const rsbi = okN(rrs)&&okN(vts) ? rrs/(vts/1000) : NaN;
+  [st,msg] = band(rsbi,[[x=>x<80,"ok","Favorevole"],[x=>x<=105,"wa","Zona grigia (80–105)"],[x=>true,"da","Respiro rapido superficiale: sfavorevole"]]);
+  out("wean","rsbi","RSBI (SBI)",rsbi,0,"atti/min/L",st,msg,"RSBI = FR / Vt[L]","Misurare a basso supporto (PS ≤5–8, PEEP 5). Performance limitata come test isolato nelle popolazioni chirurgiche.","Valutare causa del carico (secrezioni, edema, debolezza, frenico); ripetere dopo correzione.");
+  if(okN(mip) && mip>0) mip = -mip;
+  [st,msg] = band(mip,[[x=>x<=-30,"ok","Forza adeguata"],[x=>x<=-20,"wa","Ai limiti"],[x=>true,"da","Debolezza inspiratoria"]]);
+  out("wean","mip","MIP / NIF",mip,0,"cmH₂O",st,msg,"Exp. hold 20 s con massimo sforzo","","Ricercare paralisi frenica, ICU-AW, curaro residuo, elettroliti.");
+  const crop = okN(cdyn)&&okN(mip)&&okN(aA)&&okN(rrs) ? cdyn*Math.abs(mip)*aA/rrs : NaN;
+  [st,msg] = band(crop,[[x=>x>=13,"ok","Favorevole"],[x=>true,"wa","Sfavorevole"]]);
+  out("wean","crop","CROP index",crop,1,"mL/atto",st,msg,"Cdyn × |MIP| × (PaO₂/PAO₂)/FR","Usa Cdyn (Meccanica) e a/A (EGA).");
+  const dedi = okN(edip)&&okN(edim) ? edip-edim : NaN;
+  const nava = div(ps, dedi);
+  out("wean","nava","NAVA level stimato",nava,2,"cmH₂O/µV","in",okN(nava)?"Equivalente all'attuale PS":"","NAVA level = PS / (Edi peak – Edi min)","Punto di partenza per passare da PS a NAVA; poi titolare su Edi e Vt.");
+  out("wean","dedi","ΔEdi",dedi,1,"µV","in",okN(dedi)?"Utile come trend: ↓ marcata = sovra-assistenza/sedazione; ↑ progressiva = ↑carico/drive":"","Edi peak – Edi min");
+  const dtf = okN(tee)&&okN(tei) ? (tei-tee)/tee*100 : NaN;
+  [st,msg] = band(dtf,[[x=>x<20,"da","Disfunzione diaframmatica"],[x=>x<30,"wa","Ai limiti"],[x=>true,"ok","Contrattilità conservata"]]);
+  out("wean","dtf","Frazione ispessimento (DTF)",dtf,0,"%",st,msg,"DTF = (Tei – Tee)/Tee","Eco in zona di apposizione (sonda lineare). Confrontare i due emidiaframmi.","Sospetta paresi frenica (cold injury, prelievo AMI): sniff test eco, valutazione bilaterale.");
+  [st,msg] = band(exc,[[x=>x<10,"da","Ridotta: rischio fallimento weaning"],[x=>true,"ok","Adeguata"]]);
+  out("wean","exc","Escursione diaframmatica",exc,0,"mm",st,msg,"M-mode, sonda convex, respiro tranquillo","Valori <10 mm associati a fallimento del weaning (Kim 2011); movimento paradosso = paralisi.");
+  let xf = num("xfio2"); if(okN(xf)&&xf>1.0001) xf = xf/100;
+  const rox = okN(num("xspo2"))&&okN(xf)&&okN(num("xrr")) ? (num("xspo2")/xf)/num("xrr") : NaN;
+  [st,msg] = band(rox,[[x=>x>=4.88,"ok","Basso rischio di reintubazione"],[x=>x>=3.85,"wa","Zona intermedia: rivalutare"],[x=>true,"da","Alto rischio di fallimento HFNO"]]);
+  out("wean","rox","ROX index (HFNO)",rox,2,"",st,msg,"ROX = (SpO₂/FiO₂)/FR","Valutazione a 2, 6 e 12 h (Roca 2019).","Rivalutazione medica immediata; considerare NIV o reintubazione senza ritardo.");
+
+  /* ---------- Transpolmonare ---------- */
+  const pesee = num("pesee"), pesei = num("pesei");
+  const plee = okN(peepTot)&&okN(pesee) ? peepTot-pesee : NaN;
+  [st,msg] = band(plee,[[x=>x<-2,"da","Negativa: collasso di fine espirazione"],[x=>x<0,"wa","Lievemente negativa"],[x=>x<=6,"ok","In target 0–6"],[x=>x<=10,"wa","Elevata"],[x=>true,"da","Eccessiva"]]);
+  out("ptp","plee","PL fine espirazione",plee,1,"cmH₂O",st,msg,"PL,ee = PEEPtot – Pes,ee","Target 0–6 (EPVent-2).","PL,ee <0: ↑PEEP a step di 2 fino a 0–2; >6: ↓PEEP se emodinamica o sovradistensione.");
+  const plei = okN(pplat)&&okN(pesei) ? pplat-pesei : NaN;
+  out("ptp","plei","PL fine inspirazione (diretta)",plei,1,"cmH₂O","in","","PL,ei = Pplat – Pes,ei");
+  const dpes = okN(pesei)&&okN(pesee) ? pesei-pesee : NaN;
+  const dpl = okN(dp)&&okN(dpes) ? dp-dpes : NaN;
+  [st,msg] = band(dpl,[[x=>x<10,"ok","Protettiva"],[x=>x<=12,"wa","Al limite"],[x=>true,"da","Stress transpolmonare eccessivo"]]);
+  out("ptp","dpl","ΔPL",dpl,1,"cmH₂O",st,msg,"ΔPL = ΔP – ΔPes","","↓Vt.");
+  const ecw = div(dpes, vtL), el = okN(ers)&&okN(ecw) ? ers-ecw : NaN, ratio = div(el, ers);
+  out("ptp","ecw","Elastanza parete Ecw",ecw,1,"cmH₂O/L","in",okN(ratio)?"EL/Ers = "+fmt(ratio,2)+(ratio<0.6?" (parete rigida: Pplat sovrastima lo stress)":""):"","Ecw = ΔPes/Vt; EL = Ers – Ecw");
+  const pleiE = okN(pplat)&&okN(ratio) ? pplat*ratio : NaN;
+  [st,msg] = band(pleiE,[[x=>x<20,"ok","Stress accettabile"],[x=>x<=25,"wa","Al limite"],[x=>true,"da","Sovradistensione"]]);
+  out("ptp","pleiE","PL,ei da elastanza",pleiE,1,"cmH₂O",st,msg,"PL,ei = Pplat × EL/Ers","Il valore più rappresentativo dello stress delle zone non dipendenti.","↓Vt e/o ↓PEEP.");
+
+  render(); renderFlags(); renderBar(pbw, vtT, vtkg, dp, mp, pf);
+}
+
+/* =========================================================
+   Sintesi
+   ========================================================= */
+const SECN = {paz:"Paziente",mecc:"Meccanica",oss:"EGA/O₂",co2:"CO₂",wean:"Drive/Weaning",ptp:"Transpolmonare"};
+function renderFlags(){
+  $("sOk").textContent = COUNTS.ok; $("sWa").textContent = COUNTS.wa; $("sDa").textContent = COUNTS.da;
+  const n = COUNTS.wa + COUNTS.da, c = $("navCnt");
+  if(c){ c.style.display = n ? "inline-block" : "none"; c.textContent = n; c.style.background = COUNTS.da ? "var(--da)" : "var(--wa)"; }
+  const f = FLAGS.slice().sort((a,b)=>(a.st==="da"?0:1)-(b.st==="da"?0:1));
+  $("flags").innerHTML = f.length ? f.map(x=>`<div class="flag"><span class="dot ${x.st}"></span><div><b>${x.label}: ${typeof x.val==="string"?x.val:fmt(x.val,x.dec)} ${x.unit||""}</b> <span class="pill p-in">${SECN[x.sec]}</span><div class="fm">${x.msg||""}</div>${x.act?`<div class="fa">→ ${x.act}</div>`:""}</div></div>`).join("")
+    : `<p style="color:var(--mu);font-size:13.5px">Nessun valore fuori range. Inserisci i dati nelle schede Paziente, Meccanica, EGA/O₂, CO₂ e Drive/Weaning (o carica il caso esempio).</p>`;
+}
+function renderBar(pbw, vtT, vtkg, dp, mp, pf){
+  const s = SCEN[STATE.scen||"postop"].n;
+  $("pbar").innerHTML = `<span class="chip">${s}</span><span class="chip">PBW <b>${fmt(pbw,1)}</b> kg</span><span class="chip">Vt target <b>${fmt(vtT,0)}</b> mL</span><span class="chip">Vt <b>${fmt(vtkg,1)}</b> mL/kg</span><span class="chip">ΔP <b>${fmt(dp,0)}</b></span><span class="chip">MP <b>${fmt(mp,1)}</b> J/min</span><span class="chip">P/F <b>${fmt(pf,0)}</b></span>`;
+}
+
+/* =========================================================
+   Checklist fast-track
+   ========================================================= */
+const CHK = [
+  "Sveglio, collaborante, RASS 0/–1, nessun delirium (CAM-ICU negativo)",
+  "Riflessi protettivi presenti, tosse efficace; TOF ≥0,9 (nessun curaro residuo)",
+  "Emodinamica stabile, vasoattivi bassi/stabili o in riduzione (VIS basso)",
+  "Nessuna aritmia maligna; pacing funzionante se necessario",
+  "Sanguinamento drenaggi <100 mL/h, nessuna indicazione a revisione",
+  "Normotermia ≥36 °C, nessun brivido",
+  "Lattati <2–3 mmol/L o in netta riduzione; diuresi adeguata",
+  "pH ≥7,30–7,35 e PaCO₂ <50 mmHg",
+  "P/F >150–200 con FiO₂ ≤0,4–0,5 e PEEP ≤5–8",
+  "SBT superato: PS 5–8 / PEEP 5 per 30 min, FR <25–30, RSBI <80–105",
+  "Elettroliti corretti (K⁺, Mg²⁺), Hb adeguata",
+  "Analgesia efficace (dolore sternale controllato)"
+];
+function buildChk(){
+  const box = $("chk"); const st = STATE.chk || [];
+  CHK.forEach((t,i)=>{
+    const l = document.createElement("label");
+    l.innerHTML = `<input type="checkbox" ${st[i]?"checked":""}><span>${t}</span>`;
+    l.querySelector("input").onchange = e=>{ const a = STATE.chk || []; a[i] = e.target.checked; STATE.chk = a; save(); updChk(); };
+    box.appendChild(l);
+  });
+  updChk();
+}
+function updChk(){
+  const n = (STATE.chk||[]).filter(Boolean).length, tot = CHK.length, box = $("chkRes");
+  $("chkN").textContent = n + "/" + tot;
+  box.className = "o " + (n===tot?"ok":n>=tot-2?"wa":"in");
+  $("chkM").textContent = n===tot ? "Candidato all'estubazione fast-track (decisione medica)" : n>=tot-2 ? "Quasi pronto: correggere i criteri mancanti" : "Non ancora candidato";
+}
+
+/* =========================================================
+   Report, demo, theme, reset
+   ========================================================= */
+function report(){
+  const lines = ["SERVO-U VENT – Report " + new Date().toLocaleString("it-IT"), "Scenario: " + SCEN[STATE.scen||"postop"].n, ""];
+  Object.entries(BOX).forEach(([sec, arr])=>{
+    const rows = arr.filter(o=>okN(o.val)||typeof o.val==="string");
+    if(!rows.length) return;
+    lines.push("— " + SECN[sec] + " —");
+    rows.forEach(o=>lines.push(`${o.label}: ${typeof o.val==="string"?o.val:fmt(o.val,o.dec)} ${o.unit||""}${o.st==="wa"||o.st==="da"?"  ["+(o.st==="da"?"CRITICO":"ATTENZIONE")+"] "+(o.msg||""):""}`));
+    lines.push("");
+  });
+  lines.push("Fast-track: " + ((STATE.chk||[]).filter(Boolean).length) + "/" + CHK.length + " criteri");
+  return lines.join("\n");
+}
+function toast(t){ const e = $("toast"); e.textContent = t; e.classList.add("on"); setTimeout(()=>e.classList.remove("on"), 1800); }
+const DEMO = {sex:"M",age:"68",h:"172",w:"88",mode:"PRVC",rr:"16",vte:"480",vti:"500",ti:"0.9",ppeak:"24",pplat:"20",peep:"6",peept:"7",pmean:"11",
+  fio2:"50",pao2:"92",paco2:"46",ph:"7.33",sao2:"96",spo2:"96",hb:"9.8",co:"4.6",svo2:"64",etco2:"36",vco2:"200",
+  p01:"2.1",pocc:"9",rrs:"22",vts:"420",ps:"8",mip:"-28",edip:"14",edim:"2",tee:"2.2",tei:"2.9",exc:"14"};
+function setAll(obj){
+  Object.values(IN).flat().forEach(d=>{ const el = $(d.id); const v = obj[d.id]!==undefined ? obj[d.id] : (d.def||""); el.value = v || (d.type==="sel"?d.def:""); STATE[d.id] = el.value; });
+  save(); recompute();
+}
+function applyTheme(){ const t = STATE.theme; if(t) document.documentElement.dataset.theme = t; else delete document.documentElement.dataset.theme; }
+
+/* =========================================================
+   Init
+   ========================================================= */
+load(); applyTheme(); buildNav(); buildInputs(); buildScen(); buildChk();
+$("vtKg").value = STATE.vtKg || 6;
+$("vtKg").addEventListener("input", e=>{ STATE.vtKg = e.target.value; save(); recompute(); });
+renderScen(); recompute(); showTab(STATE._tab || "paz");
+$("btnTheme").onclick = ()=>{ const dark = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim()==="#0e1620"; STATE.theme = dark ? "light" : "dark"; save(); applyTheme(); };
+$("btnReset").onclick = ()=>{ if(confirm("Azzerare tutti i dati inseriti?")){ STATE.chk = []; document.querySelectorAll("#chk input").forEach(i=>i.checked=false); updChk(); setAll({}); toast("Dati azzerati"); } };
+$("btnDemo").onclick = ()=>{ setAll(DEMO); toast("Caso esempio caricato"); };
+$("btnCopy").onclick = async ()=>{ const t = report(); try{ await navigator.clipboard.writeText(t); toast("Report copiato"); }catch(e){ const ta = document.createElement("textarea"); ta.value = t; document.body.appendChild(ta); ta.select(); try{ document.execCommand("copy"); toast("Report copiato"); }catch(_){ toast("Copia non riuscita"); } ta.remove(); } };
+
+/* =========================================================
+   Installazione PWA: diagnostica + prompt
+   ========================================================= */
+let DEFER = null;
+window.addEventListener("beforeinstallprompt", e=>{ e.preventDefault(); DEFER = e; $("btnInstall").style.display=""; $("btnInst").style.display=""; diag(); });
+window.addEventListener("appinstalled", ()=>{ DEFER=null; toast("App installata"); diag(); });
+async function doInstall(){
+  if(!DEFER){ toast("Chrome non propone l'installazione: vedi la diagnostica"); showTab("sintesi"); return; }
+  DEFER.prompt(); const r = await DEFER.userChoice; DEFER = null; $("btnInstall").style.display="none"; $("btnInst").style.display="none";
+  toast(r.outcome==="accepted"?"Installazione avviata":"Installazione annullata");
+}
+async function diag(){
+  const rows = [];
+  const add = (ok, t, fix)=>rows.push(`<div class="flag"><span class="dot ${ok===true?"":ok===null?"wa":"da"}" style="${ok===true?"background:var(--ok)":""}"></span><div><b>${t}</b>${fix&&ok!==true?`<div class="fa">→ ${fix}</div>`:""}</div></div>`);
+  const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+  if(standalone){ $("instDiag").innerHTML = `<div class="flag"><span class="dot" style="background:var(--ok)"></span><div><b>L'app è già in esecuzione come app installata.</b></div></div>`; $("instCard").style.display="none"; return; }
+  const ua = navigator.userAgent, chrome = /Chrome\/\d+/.test(ua) && !/SamsungBrowser|EdgA|OPR|Firefox|FxiOS|Huawei|HuaweiBrowser|MiuiBrowser|YaBrowser/.test(ua);
+  add(chrome, chrome ? "Browser: Chrome" : "Browser non Chrome ("+(ua.match(/(SamsungBrowser|Firefox|EdgA|OPR|HuaweiBrowser|MiuiBrowser)/)||["sconosciuto"])[0]+")", "Apri il link con Google Chrome: gli altri browser creano solo collegamenti.");
+  const https = location.protocol === "https:";
+  add(https, https ? "Servita in HTTPS: "+location.host+location.pathname : "Aperta come "+location.protocol.replace(":","")+" (file locale o anteprima)", "Apri il link https://cimox44.github.io/NOME-REPO/ — un file aperto da memoria, zip, Drive o WhatsApp non è installabile.");
+  if(location.pathname.endsWith("/index.html")) add(null, "Aperta su …/index.html", "Meglio aprire la cartella del sito (senza index.html finale) e installare da lì.");
+  let man = null;
+  try{ const r = await fetch("svu-manifest.json",{cache:"no-store"}); if(r.ok) man = await r.json(); }catch(e){}
+  add(!!man, man ? "svu-manifest.json trovato" : "svu-manifest.json NON trovato", "Carica svu-manifest.json nella stessa cartella di index.html (radice del repository).");
+  if(man){
+    for(const ic of (man.icons||[])){
+      let ok=false; try{ const r = await fetch(ic.src,{cache:"no-store"}); ok = r.ok && (r.headers.get("content-type")||"").includes("image"); }catch(e){}
+      add(ok, (ok?"Icona presente: ":"Icona mancante: ")+ic.src, "Carica "+ic.src+" nella radice del repository (nome identico, minuscole).");
+    }
+  }
+  let swOk = false;
+  if("serviceWorker" in navigator && https){
+    try{ const reg = await navigator.serviceWorker.getRegistration(); swOk = !!(reg && (reg.active || reg.installing || reg.waiting)); }catch(e){}
+    add(swOk, swOk ? "Service worker attivo (offline)" : "Service worker non registrato", "Verifica che sw.js sia nella radice; poi ricarica la pagina 2 volte.");
+  }
+  add(DEFER ? true : null, DEFER ? "Chrome propone l'installazione" : "Chrome non ha ancora proposto l'installazione",
+      "Se tutto sopra è verde: elimina il vecchio collegamento dalla Home, Chrome → ⋮ → Impostazioni → Impostazioni sito → Tutti i siti → cimox44.github.io → Cancella e ripristina, riapri il link, attendi 30 s e usa ⋮ → “Installa app”. Su telefoni senza Google Play Services (es. Huawei) Chrome crea solo collegamenti.");
+  $("instDiag").innerHTML = rows.join("");
+}
+$("btnInstall").onclick = doInstall; $("btnInst").onclick = doInstall; $("btnDiag").onclick = diag;
+setTimeout(diag, 800);
+
+if("serviceWorker" in navigator && location.protocol.startsWith("http")){ window.addEventListener("load", ()=>navigator.serviceWorker.register("svu-sw.js").catch(()=>{})); }
+</script>
+</body>
+</html>
