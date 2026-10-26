@@ -63,6 +63,7 @@ main{max-width:1100px;margin:0 auto;padding:14px 16px 40px}
 section.tab{display:none}
 section.tab.on{display:block}
 .grid{display:grid;gap:14px;grid-template-columns:1fr}
+.grid>*{min-width:0} /* v2.2: evita che le tabelle allarghino la pagina su telefono */
 @media(min-width:820px){.grid.two{grid-template-columns:1fr 1fr}}
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;box-shadow:var(--sh)}
 .card h2{font-size:15.5px;margin:0 0 4px;display:flex;align-items:center;gap:8px}
@@ -148,7 +149,7 @@ footer{max-width:1100px;margin:0 auto;padding:0 16px 30px;font-size:11.5px;color
 <header>
   <div class="hrow">
     <div class="logo">SU</div>
-    <div class="ttl"><b>Servo-U Vent · ICU CCH</b><span>Ventilazione meccanica · v2.0</span></div>
+    <div class="ttl"><b>Servo-U Vent · ICU CCH</b><span>Ventilazione meccanica · v2.2</span></div>
     <button class="ib" id="btnInst" title="Installa / diagnostica" style="display:none">⬇</button>
     <button class="ib" id="btnTheme" title="Tema chiaro/scuro">☾</button>
     <button class="ib" id="btnReset" title="Azzera i dati">↺</button>
@@ -251,7 +252,7 @@ footer{max-width:1100px;margin:0 auto;padding:0 16px 30px;font-size:11.5px;color
 <section class="tab" id="t-ptp">
   <div class="card">
     <h2>Pressione transpolmonare (Pes – opzione Servo-U)</h2>
-    <p class="sub">Richiede catetere esofageo validato (manovra automatica di posizionamento Servo-U). Usa Pplat, PEEP totale e Vt della scheda Meccanica.</p>
+    <p class="sub">Richiede catetere esofageo a palloncino (modulo Y sensor + SW Transpulmonary pressure) con posizionamento verificato: occlusion test in pausa espiratoria, rapporto ΔPes/ΔPaw 0,8–1,2. Usa Pplat, PEEP totale e Vt della scheda Meccanica.</p>
     <div class="ins" id="in-ptp"></div>
     <div class="outs" id="out-ptp"></div>
     <div class="note">Utile in: obesità/addome teso, sternotomia con torace rigido, ARDS moderata-grave, discrepanza tra Pplat e clinica. PL,ee guida la PEEP (evitare collasso); PL,ei da elastanza e ΔPL limitano lo stress (EPVent-2, Beitler 2019; Baedorf Kassis 2016).</div>
@@ -421,7 +422,7 @@ footer{max-width:1100px;margin:0 auto;padding:0 16px 30px;font-size:11.5px;color
         <tr><th>Situazione</th><th>Effetto della ventilazione</th><th>Strategia</th></tr>
         <tr><td class="k">Disfunzione VD / IP</td><td>↑PVR con iperinsufflazione e con atelettasia (PVR minima a FRC), ipossia, ipercapnia, acidosi</td><td>Vt 6 mL/kg, PEEP moderata (5–8), Pplat &lt;27, PaCO₂ 35–40, pH ≥7,35, SpO₂ ≥94%, FiO₂ adeguata; NO inalatorio se indicato</td></tr>
         <tr><td class="k">Disfunzione VS / edema</td><td>La pressione positiva ↓ postcarico VS e precarico</td><td>PEEP utile (8–10); attenzione al weaning: WIPO (edema da svezzamento)</td></tr>
-        <tr><td class="k">Ipovolemia</td><td>PEEP e Pmean ↓ ritorno venoso → ipotensione</td><td>Ottimizza volemia prima di ↑PEEP; PPV/SVV valide solo se passivo, Vt ≥8, RR/FC &gt;3,6, torace chiuso</td></tr>
+        <tr><td class="k">Ipovolemia</td><td>PEEP e Pmean ↓ ritorno venoso → ipotensione</td><td>Ottimizza volemia prima di ↑PEEP; PPV/SVV valide solo se passivo, Vt ≥8 mL/kg, FC/FR &gt;3,6 (De Backer 2009), torace chiuso</td></tr>
         <tr><td class="k">Tamponamento / torace aperto</td><td>Pressione intratoracica peggiora il riempimento</td><td>Pressioni minime, chirurgo</td></tr>
         <tr><td class="k">Fontan / circolazione passiva</td><td>Il flusso polmonare dipende dalla pressione negativa</td><td>Pmean minima, Ti breve, estubazione precoce</td></tr>
       </table></div>
@@ -528,9 +529,9 @@ footer{max-width:1100px;margin:0 auto;padding:0 16px 30px;font-size:11.5px;color
     <div class="tw"><table>
       <tr><th>Parametro</th><th>Formula</th></tr>
       <tr><td class="k">PBW</td><td>M: 50 + 0,91×(H–152,4) · F: 45,5 + 0,91×(H–152,4)</td></tr>
-      <tr><td class="k">ΔP · Cstat · Cdyn</td><td>Pplat–PEEPtot · Vt/(Pplat–PEEPtot) · Vt/(Ppeak–PEEP)</td></tr>
+      <tr><td class="k">ΔP · Cstat · Cdyn</td><td>Pplat–PEEPtot · Vt/(Pplat–PEEPtot) · Vt/(Ppeak–PEEPtot)</td></tr>
       <tr><td class="k">Raw · τ</td><td>(Ppeak–Pplat)/Flusso[L/s] · Raw×Cstat[L/cmH₂O]</td></tr>
-      <tr><td class="k">MP volumetrica</td><td>0,098×RR×Vt[L]×(Ppeak – ½ΔP) (Gattinoni/Giosa)</td></tr>
+      <tr><td class="k">MP volumetrica (VC)</td><td>0,098×RR×Vt[L]×(Ppeak – ½ΔP) (Gattinoni); senza Pplat: VE×(Ppeak + PEEP + F/6)/20 (Giosa)</td></tr>
       <tr><td class="k">MP pressometrica</td><td>0,098×RR×Vt[L]×(ΔPinsp + PEEP) (Becher 2019)</td></tr>
       <tr><td class="k">PAO₂</td><td>FiO₂×(Patm–47) – PaCO₂/RQ</td></tr>
       <tr><td class="k">OI · OSI</td><td>Pmean×FiO₂×100/PaO₂ · Pmean×FiO₂×100/SpO₂</td></tr>
@@ -563,18 +564,20 @@ footer{max-width:1100px;margin:0 auto;padding:0 16px 30px;font-size:11.5px;color
       <li>Beitler JR et al. PEEP titration guided by esophageal pressure vs empirical high PEEP–FiO₂ (EPVent-2). JAMA 2019;321:846-57.</li>
       <li>Baedorf Kassis E et al. Mortality and pulmonary mechanics in relation to respiratory system and transpulmonary driving pressures in ARDS. Intensive Care Med 2016;42:1206-13.</li>
       <li>Yang KL, Tobin MJ. A prospective study of indexes predicting weaning outcome. N Engl J Med 1991;324:1445-50.</li>
-      <li>Roca O et al. An index combining respiratory rate and oxygenation (ROX) to predict HFNC outcome. Am J Respir Crit Care Med 2019;199:1368-76.</li>
+      <li>Roca O et al. An index combining respiratory rate and oxygenation (ROX) to predict HFNC outcome. Am J Respir Crit Care Med 2019;199:1368-76. Soglie di fallimento: &lt;2,85 a 2 h, &lt;3,47 a 6 h, &lt;3,85 a 12 h; validato nell'insufficienza respiratoria da polmonite, uso post-estubazione per estensione.</li>
+      <li>De Backer D et al. Influence of respiratory rate on stroke volume variation in mechanically ventilated patients. Anesthesiology 2009;110:1092-7.</li>
+      <li>Giosa L et al. (formula surrogata in VC: MP = VE × (Ppeak + PEEP + F/6)/20). Intensive Care Med Exp 2019;7:61.</li>
       <li>Kim WY et al. Diaphragm dysfunction assessed by ultrasonography: influence on weaning. Crit Care Med 2011;39:2627-30.</li>
-      <li>Silvetti S et al. Recommendations for fast-track extubation in adult cardiac surgery patients: a consensus statement (ITACTAIC). Minerva Anestesiol 2024;90:957-68.</li>
+      <li>Silvetti S, Paternoster G, Abelardo D, et al. Recommendations for fast-track extubation in adult cardiac surgery patients: a consensus statement. Minerva Anestesiol 2024;90(11):957-68. doi:10.23736/S0375-9393.24.18267-3</li>
       <li>Engelman DT et al. Guidelines for perioperative care in cardiac surgery: ERAS Society recommendations. JAMA Surg 2019;154:755-66.</li>
       <li>Tonna JE et al. Management of adult patients supported with VV-ECMO: guideline from ELSO. ASAIO J 2021;67:601-10.</li>
-      <li>Getinge. Servo-u: product brochure 4.2, functionalities flyer 4.6, user's manual (versione installata).</li>
+      <li>Getinge. Servo-u: product brochure 4.2, functionalities flyer 4.6, Transpulmonary pressure short guide (MX-8328), user's manual (versione installata).</li>
     </ol>
   </div>
 </section>
 </main>
 
-<footer>Servo-U Vent ICU v2.0 · Strumento di supporto decisionale, non dispositivo medico certificato · Dati salvati solo su questo dispositivo</footer>
+<footer>Servo-U Vent ICU v2.2 · 26/10/2026 · Strumento di supporto decisionale, non dispositivo medico certificato · Dati salvati solo su questo dispositivo</footer>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -677,7 +680,8 @@ const IN = {
     {id:"exc",l:"Escursione diaframma",u:"mm"},
     {id:"xspo2",l:"SpO₂ (HFNO)",u:"%"},
     {id:"xfio2",l:"FiO₂ (HFNO)",u:"%"},
-    {id:"xrr",l:"FR (HFNO)",u:"/min"}
+    {id:"xrr",l:"FR (HFNO)",u:"/min"},
+    {id:"xh",l:"Ore di HFNO",u:"h",h:"2, 6 o 12 h (soglie ROX)"}
   ],
   ptp: [
     {id:"pesee",l:"Pes fine espirazione",u:"cmH₂O"},
@@ -843,8 +847,8 @@ function recompute(){
   [st,msg] = band(cstat,[[x=>x>=50,"ok","Compliance conservata"],[x=>x>=30,"wa","Ridotta"],[x=>true,"da","Gravemente ridotta"]]);
   out("mecc","cstat","Compliance statica",cstat,1,"mL/cmH₂O",st,msg,"Cstat = VTe / (Pplat – PEEPtot)","Normale nell'intubato 50–80. Post-CEC spesso 35–50 per atelettasia, edema interstiziale e drenaggi.","Eco polmonare/RX: atelettasia (PEEP, fisioterapia, broncoaspirazione), versamento (drenaggio), edema (diuretico), PNX (drenaggio), addome (decompressione).");
   out("mecc","ers","Elastanza Ers",ers,1,"cmH₂O/L",null,"","Ers = 1/Cstat");
-  const cdyn = okN(ppeak)&&okN(peep) ? div(vte, ppeak-peep) : NaN;
-  out("mecc","cdyn","Compliance dinamica",cdyn,1,"mL/cmH₂O","in",okN(cdyn)&&okN(cstat)?(cstat-cdyn>15?"Cstat ≫ Cdyn: componente resistiva":"Coerente con Cstat"):"","Cdyn = VTe / (Ppeak – PEEP)","Include la componente resistiva. Il Servo-U calcola una Cdyn atto per atto (Open Lung Tool) usata per la titolazione della PEEP.");
+  const cdyn = okN(ppeak)&&okN(peepTot) ? div(vte, ppeak-peepTot) : NaN;
+  out("mecc","cdyn","Compliance dinamica",cdyn,1,"mL/cmH₂O","in",okN(cdyn)&&okN(cstat)?(cstat-cdyn>15?"Cstat ≫ Cdyn: componente resistiva":"Coerente con Cstat"):"","Cdyn = VTe / (Ppeak – PEEP totale)","Include la componente resistiva. Il Servo-U calcola una Cdyn atto per atto (Open Lung Tool) usata per la titolazione della PEEP.");
 
   const raw = (mode==="VC" && okN(flow)) ? div(pres, flow/60) : NaN;
   [st,msg] = band(raw,[[x=>x<=10,"ok","Normale per paziente intubato"],[x=>x<=15,"wa","Aumentata"],[x=>true,"da","Elevata: ostruzione"]]);
@@ -860,12 +864,16 @@ function recompute(){
 
   const vtL = vte/1000;
   let mp = NaN, mpF = "";
-  if((mode==="VC") && okN(rr)&&okN(vtL)&&okN(ppeak)&&okN(dp)){ mp = 0.098*rr*vtL*(ppeak-0.5*dp); mpF = "VC: 0,098 × FR × Vt × (Ppeak – ½ΔP)"; }
+  if(mode==="VC"){
+    if(okN(rr)&&okN(vtL)&&okN(ppeak)&&okN(dp)){ mp = 0.098*rr*vtL*(ppeak-0.5*dp); mpF = "VC: 0,098 × FR × Vt × (Ppeak – ½ΔP)"; }
+    else if(okN(mveCalc)&&okN(ppeak)&&okN(peep)&&okN(flow)){ mp = mveCalc*(ppeak+peep+flow/6)/20; mpF = "VC senza Pplat (Giosa 2019): VE × (Ppeak + PEEP + F/6) / 20"; }
+  }
   else if(okN(rr)&&okN(vtL)&&okN(peep)){
     const dpi = okN(pinsp) ? pinsp : (okN(ppeak) ? ppeak-peep : NaN);
     if(okN(dpi)){ mp = 0.098*rr*vtL*(dpi+peep); mpF = "Pressometrica (Becher): 0,098 × FR × Vt × (ΔPinsp + PEEP)"; }
   }
   [st,msg] = band(mp,[[x=>x<12,"ok","Basso rischio"],[x=>x<=17,"wa","Zona intermedia (12–17)"],[x=>true,"da",">17 J/min: associata a mortalità"]]);
+  if(okN(mp) && ["PS","VS","NAVA","BIVENT"].includes(mode)){ st = "in"; msg = "Modalità con respiro spontaneo: stima solo indicativa (non include il lavoro del paziente)"; }
   out("mecc","mp","Potenza meccanica",mp,1,"J/min",st,msg,mpF||"Richiede FR, Vt, Ppeak (o P insp), PEEP","Integra pressioni, volume, flusso e frequenza. Non esiste una soglia di sicurezza universale: utile soprattutto come trend.","Ridurre i determinanti modificabili: ΔP (Vt), FR (tollerando PaCO₂ se emodinamica lo consente), PEEP non necessaria.");
   const ddr = okN(dp)&&okN(rr) ? 4*dp+rr : NaN;
   out("mecc","ddr","Indice 4·ΔP + FR",ddr,0,"","in",okN(ddr)?"Ogni cmH₂O di ΔP pesa come 4 atti/min":"","4×ΔP + FR (Costa 2021)","Semplificazione della potenza meccanica: guida a ridurre preferenzialmente la ΔP rispetto alla FR.");
@@ -877,9 +885,11 @@ function recompute(){
 
   /* ---------- Ossigenazione ---------- */
   let fio2 = num("fio2"); if(okN(fio2) && fio2>1.0001) fio2 = fio2/100;
-  const pao2 = num("pao2"), paco2 = num("paco2"), ph = num("ph"), sao2p = num("sao2"), spo2 = num("spo2"), hb = num("hb");
+  const pct = x => (okN(x) && x > 0 && x <= 1) ? x*100 : x;   /* saturazioni inserite come frazione (0,96) */
+  const pao2 = num("pao2"), paco2 = num("paco2"), ph = num("ph"), sao2p = pct(num("sao2")), spo2 = pct(num("spo2"));
+  const hbIn = num("hb"), hb = (okN(hbIn) && hbIn > 25) ? hbIn/10 : hbIn;   /* Hb inserita in g/L */
   const patm = okN(num("patm")) ? num("patm") : 760, rq = okN(num("rq")) ? num("rq") : 0.8;
-  const svo2p = num("svo2"), co = num("co"), pao2t = num("pao2t");
+  const svo2p = pct(num("svo2")), co = num("co"), pao2t = num("pao2t");
   const pAO2 = okN(fio2)&&okN(paco2) ? fio2*(patm-47) - paco2/rq : NaN;
   const pf = div(pao2, fio2), sf = div(spo2, fio2);
 
@@ -915,7 +925,7 @@ function recompute(){
   const sao2 = okN(sao2p) ? sao2p/100 : (okN(spo2)?spo2/100:NaN);
   const cao2 = okN(hb)&&okN(sao2) ? 1.34*hb*sao2 + 0.003*(okN(pao2)?pao2:0) : NaN;
   [st,msg] = band(cao2,[[x=>x>=17,"ok","Normale"],[x=>x>=14,"wa","Ridotto"],[x=>true,"da","Gravemente ridotto"]]);
-  out("oss","cao2","Contenuto arterioso O₂",cao2,1,"mL/dL",st,msg,"CaO₂ = 1,34×Hb×SaO₂ + 0,003×PaO₂","Dipende quasi interamente da Hb e saturazione: aumentare la PaO₂ oltre 100 aggiunge pochissimo.","Correggere anemia secondo soglia trasfusionale di reparto; ottimizzare SaO₂.");
+  out("oss","cao2","Contenuto arterioso O₂",cao2,1,"mL/dL",st,msg,"CaO₂ = 1,34×Hb×SaO₂ + 0,003×PaO₂","Dipende quasi interamente da Hb e saturazione: aumentare la PaO₂ oltre 100 aggiunge pochissimo."+(okN(hbIn)&&hbIn>25?" Hb inserita in g/L: convertita in g/dL.":""),"Correggere anemia secondo soglia trasfusionale di reparto; ottimizzare SaO₂.");
   const do2 = okN(cao2)&&okN(co) ? cao2*co*10 : NaN, do2i = div(do2, bsa);
   [st,msg] = band(do2i,[[x=>x>=500,"ok","Adeguato"],[x=>x>=400,"wa","Ai limiti"],[x=>true,"da","Insufficiente"]]);
   out("oss","do2","DO₂ / DO₂I",okN(do2)?do2:NaN,0,"mL/min",st,okN(do2i)?"DO₂I "+fmt(do2i,0)+" mL/min/m² – "+msg:msg,"DO₂ = CaO₂ × GC × 10","","Agire su gittata (precarico, inotropi), Hb e SaO₂.");
@@ -986,9 +996,12 @@ function recompute(){
   [st,msg] = band(exc,[[x=>x<10,"da","Ridotta: rischio fallimento weaning"],[x=>true,"ok","Adeguata"]]);
   out("wean","exc","Escursione diaframmatica",exc,0,"mm",st,msg,"M-mode, sonda convex, respiro tranquillo","Valori <10 mm associati a fallimento del weaning (Kim 2011); movimento paradosso = paralisi.");
   let xf = num("xfio2"); if(okN(xf)&&xf>1.0001) xf = xf/100;
-  const rox = okN(num("xspo2"))&&okN(xf)&&okN(num("xrr")) ? (num("xspo2")/xf)/num("xrr") : NaN;
-  [st,msg] = band(rox,[[x=>x>=4.88,"ok","Basso rischio di reintubazione"],[x=>x>=3.85,"wa","Zona intermedia: rivalutare"],[x=>true,"da","Alto rischio di fallimento HFNO"]]);
-  out("wean","rox","ROX index (HFNO)",rox,2,"",st,msg,"ROX = (SpO₂/FiO₂)/FR","Valutazione a 2, 6 e 12 h (Roca 2019).","Rivalutazione medica immediata; considerare NIV o reintubazione senza ritardo.");
+  const xs = pct(num("xspo2")), xh = num("xh");
+  const rox = okN(xs)&&okN(xf)&&okN(num("xrr")) ? (xs/xf)/num("xrr") : NaN;
+  const roxLow = !okN(xh) ? 3.85 : (xh < 6 ? 2.85 : (xh < 12 ? 3.47 : 3.85));
+  const roxOra = !okN(xh) ? "12 h (ora non indicata)" : (xh < 6 ? "2 h" : (xh < 12 ? "6 h" : "12 h"));
+  [st,msg] = band(rox,[[x=>x>=4.88,"ok","Basso rischio di fallimento HFNO"],[x=>x>=roxLow,"wa","Zona intermedia: rivalutare a breve"],[x=>true,"da","Alto rischio di fallimento HFNO (soglia "+fmt(roxLow,2)+" a "+roxOra+")"]]);
+  out("wean","rox","ROX index (HFNO)",rox,2,"",st,msg,"ROX = (SpO₂/FiO₂)/FR","Roca 2019: ≥4,88 a 2, 6 o 12 h = basso rischio; fallimento probabile se <2,85 a 2 h, <3,47 a 6 h, <3,85 a 12 h. Validato nell'insufficienza respiratoria da polmonite: nel post-estubazione cardiochirurgico è un'estensione d'uso.","Rivalutazione medica immediata; considerare NIV o reintubazione senza ritardo.");
 
   /* ---------- Transpolmonare ---------- */
   const pesee = num("pesee"), pesei = num("pesei");

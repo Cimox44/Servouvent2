@@ -1,4 +1,4 @@
-const CACHE = "servou-vent-v2.1.0";
+const CACHE = "servou-vent-v2.2.0";
 const ASSETS = ["./", "./index.html", "./svu-manifest.json", "./svu-icon-192.png", "./svu-icon-512.png", "./svu-icon-maskable.png"];
 
 self.addEventListener("install", e => {
